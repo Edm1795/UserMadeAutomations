@@ -6,6 +6,8 @@
 import pyautogui as ag
 import time
 import datetime
+import pickle
+
 
 
 
@@ -355,6 +357,13 @@ class TimeValues:
     def getSlow(self):
         return self.slow
 
+def saveFile(file):
+
+    with open(file, "wb") as fp:  # Pickling
+        pickle.dump(l, fp)
+
+    with open("test", "rb") as fp:  # Unpickling
+        b = pickle.load(fp)
 
 funcList=[]
 
@@ -364,9 +373,11 @@ def main():
     taskSet1=TaskSet('h') # instantiate class of methods
     runMainLoop=True # set up while loop control variable
 
-    while runMainLoop: # loop for gathering input from user
+    ####### Gathering User's Plans for Automation Loop #######
 
-        mainRawInput =input('Press 1 for move mouse and click; press 2 to finish and run; 3 to type.') # prompt user
+    while runMainLoop: # loop for gathering input from user. Stopping this loop will move out of the user gathering mode and into run mode
+
+        mainRawInput =input('Press 1 for move mouse and click; 2 to type, 3 to finish and run;') # prompt user
         if mainRawInput=='1': # if user wants to add mouse moves
             rawInput=input('press 1 to add a colour check for a web element; press 2 to simply click mouse without colour check')
             if rawInput=='1':
@@ -390,14 +401,18 @@ def main():
                 mousePos=ag.position() # get position of mouse as tuple (x,y)
                 funcList.append([taskSet1.moveMouse,mousePos,0.5,'y']) # append function call and arguments with delay and click
 
-        if mainRawInput=='2': # if user wants to complete building the sequence of clicks
-            runMainLoop=False
-
-        if mainRawInput == '3':
+        if mainRawInput == '2':
             rawText = input('Type the text you want entered:')  # prompt user to move mouse into desired position
             funcList.append([taskSet1.type, rawText])  # append function call and arguments with delay and click
 
-# Run the list of fucntion calls with arguments
+        if mainRawInput=='3': # if user wants to complete building the sequence of clicks
+            runMainLoop=False
+
+
+
+    ###### Running the User's Set of Automations ######
+
+    # Run the list of function calls with arguments
     for list in funcList:  # access the list in the list
         if list[0] == taskSet1.moveMouse:
             list[0](list[1][0],list[1][1],list[2],list[3])  # access each item in the internal list and input arguments
