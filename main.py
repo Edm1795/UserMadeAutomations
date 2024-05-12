@@ -8,6 +8,7 @@ import time
 import datetime
 
 
+
 class TaskSet:
     '''
     Class for a single unified set of automated GUI movements and actions
@@ -92,17 +93,19 @@ class TaskSet:
         ag.press(secondKey)  # press the left arrow key
         ag.keyUp(holdKey)
 
-    def type(self, letters, enter):
+    def type(self, letters, enter='n'):
         '''
         Types keyboard input to the cursor.
         Inputs: letters: a sequence of strings to be typed
-        Enter: a str 'y' or 'no', if you want to press the enter key after inputing letters
+        Enter: a str 'y' or 'n', if you want to press the enter key after inputing letters1
         '''
         ag.write(letters)
 
         if enter == 'y':
             time.sleep(0.5)  # used to add gap between text input and pressing enter
             ag.press('enter')
+        if enter =='n':
+            return
 
     def moveMouseNEW(self, time, shift, duration=1):
         # This cool function simple takes the time (time of day eg, 3 pm) and the shift (eg: 1st shift) and
@@ -308,10 +311,18 @@ class CheckForElem:
                 continue
             else:
                 loop = False
+        print('Colour confirmed ')
         time.sleep(0.1)
         return True
 
+    def getColour(self):
 
+        '''
+        Gets the colour value of the pixel at the current position of the mouse
+        :return: a tuple of two tuples, the mouse position and colour value at that position ((x,y),(r,g,b))
+        '''
+        mousePos = ag.position() # get position of the mouse (x,y)
+        return (mousePos,ag.pixel(mousePos[0],mousePos[1])) # return the pixel value for the given mousePos ((x,y),(r,g,b))
 
 class TimeValues:
     '''
@@ -349,24 +360,51 @@ funcList=[]
 
 
 def main():
-
+    checkForElement=CheckForElem()
     taskSet1=TaskSet('h') # instantiate class of methods
-    run=True # set up while loop control variable
+    runMainLoop=True # set up while loop control variable
 
-    while run: # loop for gathering input from user
+    while runMainLoop: # loop for gathering input from user
 
-        rawInput =input('Press 1 for move mouse and click; press 2 to finish and run') # prompt user
-        if rawInput=='1': # if user wants to add mouse moves
-            print('move mouse into position') # prompt user to move mouse into desired position
-            time.sleep(3) # give 3 seconds to user to move mouse
-            mousePos=ag.position() # get position of mouse as tuple (x,y)
-            funcList.append([taskSet1.moveMouse,mousePos,0.5,'y']) # append function call and arguments with delay and click
-        if rawInput=='2': # if user wants to complete building the sequence of clicks
-            run=False
+        mainRawInput =input('Press 1 for move mouse and click; press 2 to finish and run; 3 to type.') # prompt user
+        if mainRawInput=='1': # if user wants to add mouse moves
+            rawInput=input('press 1 to add a colour check for a web element; press 2 to simply click mouse without colour check')
+            if rawInput=='1':
+
+                print('place mouse over the top of a stable coloured element of the program or website')
+                time.sleep(5)
+                posAndCol=checkForElement.getColour() # returns tuple of mouse pos, colour ((x,y),(r,g,b))
+                funcList.append([checkForElement.confirmColour, posAndCol])
+                rawInput2 = input('press 1 when you are ready to put mouse into position')
+                if rawInput2 == '1':
+                    print('move mouse into position')  # prompt user to move mouse into desired position
+                    time.sleep(3)  # give 3 seco1nds to user to move mouse
+                    mousePos = ag.position()  # get position of mouse as tuple (x,y)
+                    funcList.append([taskSet1.moveMouse, mousePos, 0.5,'y'])  # append function call and arguments with delay and click
+                    print('click position gathering complete, thank you.')
+
+            if rawInput=='2':
+
+                print('move mouse into position') # prompt user to move mouse into desired position
+                time.sleep(3) # give 3 seco1nds to user to move mouse
+                mousePos=ag.position() # get position of mouse as tuple (x,y)
+                funcList.append([taskSet1.moveMouse,mousePos,0.5,'y']) # append function call and arguments with delay and click
+
+        if mainRawInput=='2': # if user wants to complete building the sequence of clicks
+            runMainLoop=False
+
+        if mainRawInput == '3':
+            rawText = input('Type the text you want entered:')  # prompt user to move mouse into desired position
+            funcList.append([taskSet1.type, rawText])  # append function call and arguments with delay and click
 
 # Run the list of fucntion calls with arguments
     for list in funcList:  # access the list in the list
-        list[0](list[1][0],list[1][1],list[2],list[3])  # access each item in the internal list and input arguments
+        if list[0] == taskSet1.moveMouse:
+            list[0](list[1][0],list[1][1],list[2],list[3])  # access each item in the internal list and input arguments
+        if list[0] == checkForElement.confirmColour:
+            list[0](list[1][0][0],list[1][0][1],(list[1][1])) # [function,((x,y),(r,g,b))]
+        if list[0] == taskSet1.type:
+            list[0](list[1]) # [function,((x,y),(r,g,b))]
 
 main()
 
