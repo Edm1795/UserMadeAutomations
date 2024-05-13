@@ -382,8 +382,9 @@ def main():
 
     while newOrOldLoop:
 
-        loadOrSave=input('Press 1 to load a file, 2 to start a new one')
+        loadOrSave=input('Press \n1 to load a file\n2 to start a new one\n')
         if loadOrSave=='1':
+            print('Loading file.\n')
             funcOutlineList=loadFile("Automations") # Load the saved list of descriptions
 
             ### Build the Function List (funcList) from the Outline of Functions List (funcOutlineList) ###
@@ -404,26 +405,26 @@ def main():
 
             while runMainLoop: # loop for gathering input from user. Stopping this loop will move out of the user gathering mode and into run mode
 
-                mainRawInput =input('Press 1 for move mouse and click; 2 to type, 3 to finish and save;') # prompt user
+                mainRawInput =input('Press\n1 for move mouse and click\n2 to type\n3 to finish and save\n') # prompt user
                 if mainRawInput=='1': # if user wants to add mouse moves
-                    rawInput=input('press 1 to add a colour check for a web element; press 2 to simply click mouse without colour check')
+                    rawInput=input('Press\n1 to add a colour check for a web element\n2 to simply click mouse (without colour check)\n')
                     if rawInput=='1':
 
-                        print('place mouse over the top of a stable coloured element of the program or website')
+                        print('Place mouse over the top of a stable coloured element of the program or website -- 5 seconds\n')
                         time.sleep(5)
                         posAndCol=checkForElement.getColour() # returns tuple of mouse pos, colour ((x,y),(r,g,b))
                         funcOutlineList.append(['checkForElement.confirmColour', posAndCol])
-                        rawInput2 = input('press 1 when you are ready to put mouse into position')
+                        rawInput2 = input('Press\n1 when mouse is in position\n')
                         if rawInput2 == '1':
-                            print('move mouse into position')  # prompt user to move mouse into desired position
+                            print('Move mouse into position\n')  # prompt user to move mouse into desired position
                             time.sleep(3)  # give 3 seconds to user to move mouse
                             mousePos = ag.position()  # get position of mouse as tuple (x,y)
                             funcOutlineList.append(['taskSet1.moveMouse', mousePos, 0.5,'y'])  # append function call and arguments with delay and click
-                            print('click position gathering complete, thank you.')
+                            print('Click information gathering complete, thank you.\n')
 
                     if rawInput=='2':
 
-                        print('move mouse into position') # prompt user to move mouse into desired position
+                        print('Move mouse into position -- 3 seconds\n') # prompt user to move mouse into desired position
                         time.sleep(3) # give 3 seconds to user to move mouse
                         mousePos=ag.position() # get position of mouse as tuple (x,y)
                         funcOutlineList.append(['taskSet1.moveMouse',mousePos,0.5,'y']) # append function call and arguments with delay and click
@@ -433,6 +434,7 @@ def main():
                     funcOutlineList.append(['taskSet1.type', rawText])  # append function call and arguments with delay and click
 
                 if mainRawInput=='3': # if user wants to complete building the sequence of clicks
+                    print('**** File saved.')
                     saveFile(funcOutlineList,"Automations")
                     runMainLoop=False
 
@@ -441,6 +443,7 @@ def main():
     ###### Running the User's Set of Automations ######
 
     # Run the list of function calls with arguments
+    print('Running automation\n')
     for list in funcList:  # access the list in the list
         if list[0] == taskSet1.moveMouse:
             list[0](list[1][0],list[1][1],list[2],list[3])  # access each item in the internal list and input arguments
