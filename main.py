@@ -357,56 +357,84 @@ class TimeValues:
     def getSlow(self):
         return self.slow
 
-def saveFile(file):
+def saveFile(dataToSave, filename):
+    with open(filename, "wb") as fp:  # Pickling
+        pickle.dump(dataToSave, fp)
+        fp.close()
 
-    with open(file, "wb") as fp:  # Pickling
-        pickle.dump(l, fp)
 
-    with open("test", "rb") as fp:  # Unpickling
-        b = pickle.load(fp)
+def loadFile(filename):
+    with open(filename, "rb") as fp:  # Unpickling
+        return pickle.load(fp)
 
-funcList=[]
+
 
 
 def main():
+    funcOutlineList=[] # List of descriptions and arguments of what functions are needed for the real functions list
+    funcList = [] # The real list of functions used for executing the automations
     checkForElement=CheckForElem()
     taskSet1=TaskSet('h') # instantiate class of methods
     runMainLoop=True # set up while loop control variable
+    newOrOldLoop=True
 
-    ####### Gathering User's Plans for Automation Loop #######
 
-    while runMainLoop: # loop for gathering input from user. Stopping this loop will move out of the user gathering mode and into run mode
 
-        mainRawInput =input('Press 1 for move mouse and click; 2 to type, 3 to finish and run;') # prompt user
-        if mainRawInput=='1': # if user wants to add mouse moves
-            rawInput=input('press 1 to add a colour check for a web element; press 2 to simply click mouse without colour check')
-            if rawInput=='1':
+    while newOrOldLoop:
 
-                print('place mouse over the top of a stable coloured element of the program or website')
-                time.sleep(5)
-                posAndCol=checkForElement.getColour() # returns tuple of mouse pos, colour ((x,y),(r,g,b))
-                funcList.append([checkForElement.confirmColour, posAndCol])
-                rawInput2 = input('press 1 when you are ready to put mouse into position')
-                if rawInput2 == '1':
-                    print('move mouse into position')  # prompt user to move mouse into desired position
-                    time.sleep(3)  # give 3 seco1nds to user to move mouse
-                    mousePos = ag.position()  # get position of mouse as tuple (x,y)
-                    funcList.append([taskSet1.moveMouse, mousePos, 0.5,'y'])  # append function call and arguments with delay and click
-                    print('click position gathering complete, thank you.')
+        loadOrSave=input('Press 1 to load a file, 2 to start a new one')
+        if loadOrSave=='1':
+            funcOutlineList=loadFile("Automations") # Load the saved list of descriptions
 
-            if rawInput=='2':
+            ### Build the Function List (funcList) from the Outline of Functions List (funcOutlineList) ###
 
-                print('move mouse into position') # prompt user to move mouse into desired position
-                time.sleep(3) # give 3 seco1nds to user to move mouse
-                mousePos=ag.position() # get position of mouse as tuple (x,y)
-                funcList.append([taskSet1.moveMouse,mousePos,0.5,'y']) # append function call and arguments with delay and click
+            for list in funcOutlineList:  # access the list in the list
+                if list[0] == 'taskSet1.moveMouse':
+                    funcList.append([taskSet1.moveMouse, list[1],list[2],list[3]])
+                if list[0] == 'checkForElement.confirmColour':
+                    funcList.append([checkForElement.confirmColour, list[1]])
+                if list[0] == 'taskSet1.type':
+                    funcList.append([taskSet1.type, list[1]])
 
-        if mainRawInput == '2':
-            rawText = input('Type the text you want entered:')  # prompt user to move mouse into desired position
-            funcList.append([taskSet1.type, rawText])  # append function call and arguments with delay and click
+            newOrOldLoop=False
 
-        if mainRawInput=='3': # if user wants to complete building the sequence of clicks
-            runMainLoop=False
+        if loadOrSave=='2':
+
+            ####### Gathering User's Plans for Automation Loop #######
+
+            while runMainLoop: # loop for gathering input from user. Stopping this loop will move out of the user gathering mode and into run mode
+
+                mainRawInput =input('Press 1 for move mouse and click; 2 to type, 3 to finish and save;') # prompt user
+                if mainRawInput=='1': # if user wants to add mouse moves
+                    rawInput=input('press 1 to add a colour check for a web element; press 2 to simply click mouse without colour check')
+                    if rawInput=='1':
+
+                        print('place mouse over the top of a stable coloured element of the program or website')
+                        time.sleep(5)
+                        posAndCol=checkForElement.getColour() # returns tuple of mouse pos, colour ((x,y),(r,g,b))
+                        funcOutlineList.append(['checkForElement.confirmColour', posAndCol])
+                        rawInput2 = input('press 1 when you are ready to put mouse into position')
+                        if rawInput2 == '1':
+                            print('move mouse into position')  # prompt user to move mouse into desired position
+                            time.sleep(3)  # give 3 seconds to user to move mouse
+                            mousePos = ag.position()  # get position of mouse as tuple (x,y)
+                            funcOutlineList.append(['taskSet1.moveMouse', mousePos, 0.5,'y'])  # append function call and arguments with delay and click
+                            print('click position gathering complete, thank you.')
+
+                    if rawInput=='2':
+
+                        print('move mouse into position') # prompt user to move mouse into desired position
+                        time.sleep(3) # give 3 seconds to user to move mouse
+                        mousePos=ag.position() # get position of mouse as tuple (x,y)
+                        funcOutlineList.append(['taskSet1.moveMouse',mousePos,0.5,'y']) # append function call and arguments with delay and click
+
+                if mainRawInput == '2':
+                    rawText = input('Type the text you want entered:')  # prompt user to move mouse into desired position
+                    funcOutlineList.append(['taskSet1.type', rawText])  # append function call and arguments with delay and click
+
+                if mainRawInput=='3': # if user wants to complete building the sequence of clicks
+                    saveFile(funcOutlineList,"Automations")
+                    runMainLoop=False
 
 
 
@@ -422,6 +450,13 @@ def main():
             list[0](list[1]) # [function,((x,y),(r,g,b))]
 
 main()
+
+
+
+
+
+
+
 
     #
     # taskSet4 = TaskSet('w')
