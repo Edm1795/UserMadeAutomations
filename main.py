@@ -395,7 +395,7 @@ def main():
                 if list[0] == 'checkForElement.confirmColour':
                     funcList.append([checkForElement.confirmColour, list[1]])
                 if list[0] == 'taskSet1.type':
-                    funcList.append([taskSet1.type, list[1]])
+                    funcList.append([taskSet1.type, list[1],list[21]])
 
             newOrOldLoop=False
 
@@ -431,7 +431,11 @@ def main():
 
                 if mainRawInput == '2':
                     rawText = input('Type the text you want entered:')  # prompt user to move mouse into desired position
-                    funcOutlineList.append(['taskSet1.type', rawText])  # append function call and arguments with delay and click
+                    enter=input("press 'y' to add enter")
+                    if enter == 'y':
+                        funcOutlineList.append(['taskSet1.type', rawText,'y'])  # append function call and arguments with delay and click
+                    else:
+                        funcOutlineList.append(['taskSet1.type', rawText,'n'])  # append function call and arguments with delay and click
 
                 if mainRawInput=='3': # if user wants to complete building the sequence of clicks
                     print('**** File saved.')
@@ -450,7 +454,7 @@ def main():
         if list[0] == checkForElement.confirmColour:
             list[0](list[1][0][0],list[1][0][1],(list[1][1])) # [function,((x,y),(r,g,b))]
         if list[0] == taskSet1.type:
-            list[0](list[1]) # [function,((x,y),(r,g,b))]
+            list[0](list[1],list[2]) # [function,((x,y),(r,g,b))]
 
 main()
 
