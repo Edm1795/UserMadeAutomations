@@ -300,8 +300,8 @@ class CheckForElem:
 
         '''
         Confirms an element is present by matching a colour expected to a colour on the screen
-        :param x: x coordinate of position of colour
-        :param y: y coordinate of position of colour
+        :param x: x coordinate of pixel to test its colour
+        :param y: y coordinate of pixel to test its colour
         :param colour: a tuple (r,g,b) given in parantheses
         :return: True once the colour is detected
         '''
@@ -395,7 +395,7 @@ def main():
                 if list[0] == 'checkForElement.confirmColour':
                     funcList.append([checkForElement.confirmColour, list[1]])
                 if list[0] == 'taskSet1.type':
-                    funcList.append([taskSet1.type, list[1],list[21]])
+                    funcList.append([taskSet1.type, list[1],list[2]])
 
             newOrOldLoop=False
 
@@ -406,25 +406,27 @@ def main():
             while runMainLoop: # loop for gathering input from user. Stopping this loop will move out of the user gathering mode and into run mode
 
                 mainRawInput =input('Press\n1 for move mouse and click\n2 to type\n3 to finish and save\n') # prompt user
-                if mainRawInput=='1': # if user wants to add mouse moves
-                    rawInput=input('Press\n1 to add a colour check for a web element\n2 to simply click mouse (without colour check)\n')
-                    if rawInput=='1':
 
-                        print('Place mouse over the top of a stable coloured element of the program or website -- 5 seconds\n')
+                if mainRawInput=='1': # if user wants to add mouse moves
+                    rawInput=input('Press\n1 to add a colour check for a web element\n2 to simply click mouse (without colour check)\n') # mouse only, or with colour check
+
+                    if rawInput=='1': # if adding colour check
+                        print('Use Main Monitor Only: Place mouse over the top of a stable coloured element of the program or website -- 5 seconds\n')
                         time.sleep(5)
-                        posAndCol=checkForElement.getColour() # returns tuple of mouse pos, colour ((x,y),(r,g,b))
+                        posAndCol=checkForElement.getColour() # returns tuple of mouse pos, colour ((x,y),(r,g,b)) ## Takes colour from main monitor only
+                        print('## Colour value acquired ##')
                         funcOutlineList.append(['checkForElement.confirmColour', posAndCol])
-                        rawInput2 = input('Press\n1 when mouse is in position\n')
+                        rawInput2 = input('Press\nNow move mouse to clicking position and press 1\n')
                         if rawInput2 == '1':
-                            print('Move mouse into position\n')  # prompt user to move mouse into desired position
+                            print('Keep mouse in position -- 3 seconds\n')  # prompt user to move mouse into desired position
                             time.sleep(3)  # give 3 seconds to user to move mouse
                             mousePos = ag.position()  # get position of mouse as tuple (x,y)
                             funcOutlineList.append(['taskSet1.moveMouse', mousePos, 0.5,'y'])  # append function call and arguments with delay and click
-                            print('Click information gathering complete, thank you.\n')
+                            print('Click position information complete, thank you.\n')
 
                     if rawInput=='2':
 
-                        print('Move mouse into position -- 3 seconds\n') # prompt user to move mouse into desired position
+                        print('Move mouse into clicking position -- 3 seconds\n') # prompt user to move mouse into desired position
                         time.sleep(3) # give 3 seconds to user to move mouse
                         mousePos=ag.position() # get position of mouse as tuple (x,y)
                         funcOutlineList.append(['taskSet1.moveMouse',mousePos,0.5,'y']) # append function call and arguments with delay and click
@@ -438,7 +440,7 @@ def main():
                         funcOutlineList.append(['taskSet1.type', rawText,'n'])  # append function call and arguments with delay and click
 
                 if mainRawInput=='3': # if user wants to complete building the sequence of clicks
-                    print('**** File saved.')
+                    print('**** Automation file saved.  All is Complete')
                     saveFile(funcOutlineList,"Automations")
                     runMainLoop=False
 
