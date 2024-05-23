@@ -330,8 +330,19 @@ class  AutomationSet:
         # after restarting the program
         self.actualFunctions=[] # List of real functions in sequence built using the outlineOfFuncCalls directly above.
 
-    def setName(self,name):
+        self.pyAutogui=PYautogui() # Instantiate the PYautogui class which contains all methods for automating
+        self.checkForElement=CheckForElem() # Instantiate CheckFor Element class
 
+        # This call actually needs to be later in the process. It is moved to inside the runAutomation() method
+        # when the class is first instantiated (during createAutomation) there is not yet a function outline and therefore
+        # the actualFunctions will be empty
+        # self.buildActualFuncsList() # Build the actual functions. This populates the actualFunctions list with the callable functions
+
+    def setName(self,name):
+        '''
+        Single word name given to the automation which becomes the title of the button on screen and given by the user.
+        :param name: str: one word which can fit inside the button
+        '''
         self.name=name
 
     def setBriefDescription(self,description):
@@ -346,7 +357,9 @@ class  AutomationSet:
 
         '''
         This method accesses the outlineOfFunctions list and appends a string name of the function and any needed arguments
-        needed for a list of sequential automations. This list is then used to build the list of real functions
+        needed for a list of sequential automations. This list is then used to build the list of real functions. This method is
+        used during the createAutomation phase when the user is building their sequence of automations. By thye time they
+        have finished all the screen prompts asking for input, this list will be full
         :param str: function and any needed int, or str: arguments (variety of types depending on what is needed:
         :return: none
         '''
@@ -369,12 +382,12 @@ class  AutomationSet:
         ### Build the Function List (actualFuncCalls) from the Outline of Functions List (outlineOfFuncCallst) ###
 
         for list in self.outlineOfFunctions:  # access the list in the list [['function name as string',parameters]]
-            if list[0] == 'taskSet1.moveMouse': # if needing moveMouse, input moveMouse function with parameters
-                self.actualFunctions.append([taskSet1.moveMouse, list[1], list[2], list[3]])
+            if list[0] == 'pyAutogui.moveMouse': # if needing moveMouse, input moveMouse function with parameters
+                self.actualFunctions.append([self.pyAutogui.moveMouse, list[1], list[2], list[3]])
             if list[0] == 'checkForElement.confirmColour': # if needing a colour check (element check), input colour check function with parameters
-                self.actualFunctions.append([checkForElement.confirmColour, list[1]])
-            if list[0] == 'taskSet1.type': # if needing to type characters input type function
-                self.actualFunctions.append([taskSet1.type, list[1], list[2]])
+                self.actualFunctions.append([self.checkForElement.confirmColour, list[1]])
+            if list[0] == 'pyAutogui.type': # if needing to type characters input type function
+                self.actualFunctions.append([self.pyAutogui.type, list[1], list[2]])
 
     def runAutomation(self):
         '''
@@ -383,16 +396,17 @@ class  AutomationSet:
         :return: none
         '''
 
+        self.buildActualFuncsList()  # Build the actual functions. This populates the actualFunctions list with the callable functions
         ###### Running the User's Set of Automations ######
 
         # Run the list of function calls with arguments
         print('Running automation\n')
         for list in self.actualFunctions:  # access the list in the list
-            if list[0] == taskSet1.moveMouse:
+            if list[0] == self.pyAutogui.moveMouse:
                 list[0](list[1][0], list[1][1], list[2],list[3])  # access each item in the internal list and input arguments
-            if list[0] == checkForElement.confirmColour:
+            if list[0] == self.checkForElement.confirmColour:
                 list[0](list[1][0][0], list[1][0][1], (list[1][1]))  # [function,((x,y),(r,g,b))]
-            if list[0] == taskSet1.type:
+            if list[0] == self.pyAutogui.type:
                 list[0](list[1], list[2])  # [function,((x,y),(r,g,b))]
 
 # List holding all individual automation objects; added in by the createAutomation function
