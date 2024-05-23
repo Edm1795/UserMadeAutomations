@@ -386,9 +386,10 @@ class  AutomationSet:
                 self.actualFunctions.append([self.pyAutogui.moveMouse, list[1], list[2], list[3]])
             if list[0] == 'checkForElement.confirmColour': # if needing a colour check (element check), input colour check function with parameters
                 self.actualFunctions.append([self.checkForElement.confirmColour, list[1]])
-            if list[0] == 'pyAutogui.type': # if needing to type characters input type function
+            if list[0] == 'pyAutogui.type': # if needing to type characters  input type function
                 self.actualFunctions.append([self.pyAutogui.type, list[1], list[2]])
-
+            if list[0] == 'pyAutogui.pressKeys': # if needing to press a key combination (hotkeys)
+                self.actualFunctions.append([self.pyAutogui.pressKeys, (list[1][0], list[1][1])]) # arguments come inside a tuple (holdKey,tapKey)
     def runAutomation(self):
         '''
         This method runs the list of automation function calls from the actualFunctions list. It calls the functions
@@ -408,6 +409,8 @@ class  AutomationSet:
                 list[0](list[1][0][0], list[1][0][1], (list[1][1]))  # [function,((x,y),(r,g,b))]
             if list[0] == self.pyAutogui.type:
                 list[0](list[1], list[2])  # [function,((x,y),(r,g,b))]
+            if list[0] == self.pyAutogui.pressKeys:
+                list[0](list[1][0], list[1][1])  # [function,(holdKey,tapKey)]
 
 # List holding all individual automation objects; added in by the createAutomation function
 automationObjList=[]
@@ -426,9 +429,9 @@ def createAutomation():
     checkForElement=CheckForElem() # Instantiate a Check for Element Class (contains methods needed for checking colours)
     automationObjList.append(AutomationSet()) # Instantiate an AutomationSet Object
 
-    name = input('Give a short one word name to your automation ') # Prompt user to give the automation a name which goes onto the button on the TK interface
+    name = input('Give a short one word name to your automation: ') # Prompt user to give the automation a name which goes onto the button on the TK interface
     automationObjList[-1].setName(name) # set name into the object which will be the last object in the list
-    briefDes = input('Give a brief one sentence description of your automation') # Also prompt user for a short description
+    briefDes = input('Give a brief one sentence description of your automation: ') # Also prompt user for a short description
     automationObjList[-1].setBriefDescription(briefDes) # set description in object
 
     ##########################################################
@@ -437,7 +440,7 @@ def createAutomation():
     runMainLoop=True
     while runMainLoop:  # loop for gathering input from user. Stopping this loop will move out of the user gathering mode and into run mode
 
-        mainRawInput = input('Press\n1 for move mouse and click\n2 to type\n3 to finish and save\n')  # prompt user
+        mainRawInput = input('Press\n1 for move mouse and click\n2 to type\n3 to press key combination\n4 to finish and save')  # prompt user
 
         if mainRawInput == '1':  # if user wants to add mouse moves
             rawInput = input('Press\n1 to add a colour check for a web element\n2 to simply click mouse (without colour check)\n')  # mouse only, or with colour check
@@ -470,7 +473,13 @@ def createAutomation():
             else:
                 automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.type', rawText, 'n'])  # append function call and arguments with delay and click
 
-        if mainRawInput == '3':  # if user wants to complete building the sequence of clicks
+        if mainRawInput == '3':  # if user wants to add a key combination (aka hotkeys)
+            holdKey = input("type abbreviation for the 'hold' key with quotation marks. For example 'ctrl', 'alt','shift': ")
+            tapKey = input("type the second key to be tapped. For example 'a', 'z': ")
+            automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.pressKeys', (holdKey, tapKey)])
+
+
+        if mainRawInput == '4':  # if user wants to complete building the sequence of clicks
             print('**** Automation file saved.  All is Complete **** ')
             saveFile(automationObjList, "Automations")
             runMainLoop = False
