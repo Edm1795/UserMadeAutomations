@@ -13,7 +13,7 @@ class MainWindow:
 
         # Master Window
         self.master = master
-        self.master.title('User Guided Automations. 0.0')
+        self.master.title('User Guided Automations. 1.0')
         self.master.geometry("+150+500")  # position of the window in the screen (200x300) ("-3300+500")
         self.master.geometry("500x400")  # set initial size of the root window (master) (1500x700);
         # if not set, the frames will fill the master window
@@ -46,7 +46,7 @@ class MainWindow:
         self.createButton.pack()
 
         # Button Lists
-        self.descrList = loadFile('Automations') # Load file storing string description of each function in sequence
+        self.descrList = loadFile('Automations') # Load file storing each Automation Object
         self.buttonList = [] # Holds Button classes for each automation from the loaded Automations file
 
         # Set up Buttons:
@@ -62,7 +62,7 @@ class MainWindow:
 
     def loadButtons(self):
         for object in self.descrList:
-            self.buttonList.append(Button(self.frame1, text=object.getName(), width=12, command=lambda: self.schedule('This button works.')))
+            self.buttonList.append(Button(self.frame1, text=object.getName(), width=12, command=lambda:object.runAutomation()))
         for button in self.buttonList:
             button.pack()
 
