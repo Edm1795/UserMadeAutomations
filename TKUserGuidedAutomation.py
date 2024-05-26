@@ -27,7 +27,7 @@ class MainWindow:
         # Instantiate frames
         self.frame0 = Frame(self.master, bd=5, padx=5, bg='#606266')  # Top long row
         self.frame1 = Frame(self.master, bd=5, padx=5, bg='#2a2b2b')  # Side Column
-        self.frame2 = Frame(self.master, bd=5, padx=5, bg='#7E050C')  # Main frame
+        self.frame2 = Frame(self.master, bd=5, padx=5, bg='#FFC672')  # Main frame
 
         # Place frames
         self.frame0.grid(row=0, column=0, columnspan=2, sticky="nsew")
