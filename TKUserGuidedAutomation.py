@@ -6,15 +6,16 @@
 from tkinter import *
 from ctypes import windll  # used for fixing blurry fonts on win 10 and 11 (also  windll.shcore.SetProcessDpiAwareness(1))
 from MainFuncsUserGuidAuto import *
+from os.path import exists
 
 class MainWindow:
 
-    def __init__(self, master):
+    def __init__(self, master,automationObjList):
 
         # Master Window
         self.master = master
-        self.master.title('User Created Automations 1.1')
-        self.master.geometry("+150+500")  # position of the window in the screen (200x300) ("-3300+500")
+        self.master.title('User Created Automations 1.2')
+        self.master.geometry("+1200+200")  # position of the window in the screen (200x300) ("-3300+500")
         self.master.geometry("500x400")  # set initial size of the root window (master) (1500x700);
         # if not set, the frames will fill the master window
         # self.master.attributes('-fullscreen', True)
@@ -42,11 +43,11 @@ class MainWindow:
         self.frame2.grid_propagate(0)
 
         # Default Buttons
-        self.createButton = Button(self.frame1, text="Create", width=12, command=createAutomation)  # Button for creating a new automation
+        self.createButton = Button(self.frame1, text="Create", width=12, command=lambda:createAutomation(automationObjList))  # Button for creating a new automation
         self.createButton.pack()
 
         # Button Lists
-        self.descrList = loadFile('Automations') # Load file storing each Automation Object
+        self.automationObjList = automationObjList # Load file storing each Automation Object
         self.buttonList = [] # Holds Button classes for each automation from the loaded Automations file
 
         # Set up Buttons:
@@ -61,20 +62,29 @@ class MainWindow:
         self.entry.pack()
 
     def loadButtons(self):
-        for object in self.descrList:
+        for object in self.automationObjList: # take each Automation object and instantiate a Button
             self.buttonList.append(Button(self.frame1, text=object.getName(), width=12, command=lambda:object.runAutomation()))
-        for button in self.buttonList:
+        for button in self.buttonList: # for each button pack it
             button.pack()
 
-    def schedule(self, text):
-        print(text)
+
 
 
 
 def main():
+
     global mainWin  # Global mainWin so as to access the mainWin from functions which may need to call method
     root = Tk()
-    mainWin = MainWindow(root)
+
+    if exists('Automations'):  # Returns True if file exists; if true open file and load into list
+        with open('Automations', 'rb') as f:  # use wb mode so if file does not exist, it will create one; use rb if only reading
+            automationObjList = pickle.load(f)
+            f.close()
+            # print('The speedometer list has been loaded from the config file', *speedometerList)
+    else: # If no file exists intialize list as empty
+        automationObjList=[]
+
+    mainWin = MainWindow(root,automationObjList) # Instantiate TK Window with access to automation object list
 
     root.mainloop()
 
