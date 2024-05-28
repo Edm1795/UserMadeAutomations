@@ -7,6 +7,10 @@ import time
 import datetime
 import pickle
 
+# List holding all individual automation objects; used by createAutomation function
+automationObjList=[]
+
+
 class PYautogui:
     '''
     Class of PY Autogui functions
@@ -68,156 +72,6 @@ class PYautogui:
             ag.press('enter')
         if enter =='n':
             return
-
-    def moveMouseNEW(self, time, shift, duration=1):
-        # This cool function simple takes the time (time of day eg, 3 pm) and the shift (eg: 1st shift) and
-        # duration of mouse move, and the mouse will go to that spot. No more need to specify pixels
-        # Vertical pixel difference between shifts: 50px
-
-        shift = shift - 1  # decrement by one to get correct results
-        shiftDiff = 52  # pixel distance between shifts (adjust this if mouse is not accurante
-        tBase = 524  # base value for time which is 8 am (horizontal axis)
-        sBase = 351  # base value for shift which is the top shift showing on screen (vertical axis)
-
-        timeUnit = 30  # number of pixels for a time unit (set at 30 mins;ie 38px = 30 mins of time)
-
-        timeSteps = self.timeSteps(time)  # number of time steps from base (8am) to desired time
-
-        vert = sBase + (
-                shift * shiftDiff)  # get shift pixel value multiply base value with number of shifts downwards on screen
-        horiz = tBase + (timeSteps * timeUnit)
-
-        ag.moveTo(horiz, vert, duration)
-
-    def eraser(self):
-        '''
-        select the eraser function from side pane
-        inputs: none
-        '''
-        self.moveMouse(22, 462, 0.5, 'y')  # click eraser selection button
-
-    def otf(self):
-        '''
-        select the otf activity function from side pane
-        inputs: none
-        '''
-        self.moveMouse(24, 427, 0.5, 'y')  # open activity pane
-        self.moveMouse(66, 813, 0.5, 'y')  # select otf from list
-
-    def logProgress(self, action, value):
-        '''
-        Logs the status of certain steps in the automation process such as finding elements on the screen
-        Inputs: Action: string of the name of the action to log, eg element colour
-        Value: str (or int) of key. Eg, True, complete
-        '''
-        action = str(action)
-        self.progressDict[action] = value
-        print(self.progressDict.items())
-
-    def get(self,value):
-        '''
-        A master getter method. Input an argument to specify which values you want.
-        Returns: tuple(x cor, y cor)
-        input: value (str): ex: 'logo'
-        return: tuple (x coord,ycoord) for the coords needed for the given parameter. Ex. 'logo' return position of the logo on screen
-        '''
-
-        if value == 'logo':
-            return self.logo # coordinates of huge "D" on main screen
-        if value == 'loginButt':
-            return self.loginButt  # coord. of main Login button on main screen
-        if value == 'schedRadButt':
-            return self.schedRadButt # coord of Scheduler radio button on first pop up before entering main program
-        if value == 'nextButt':
-            return self.nextButt  # coord of Next button on scheduler pop up window just above
-        if value == 'schedIcon':
-            return self.schedIcon  # largish Schedules icon on top right of screen
-        if value == 'filterIcon':
-            return self.filterIcon # coord of small Filter icon top left for colour check
-        if value == 'filterButt':
-            return self.filterButt # coord of filter button
-        if value == 'filterInputBar':
-            return self.filterInputBar # coord of bar for choosing which positions to filter out for viewing on schedule
-        if value == 'LA':
-            return self.LA # vals for work com: (478, 309) # Coords for LA role in drop down filter menu
-        if value == 'applyButt':
-            return self.applyButt   # coords of Apply button on filter menu
-        if value == 'monthlyCal':
-            return self.monthlyCal   # coords for opening monthly calendar for choosing day to view on screen
-
-
-    def clickDate(self):
-
-        '''
-        This function gets the current date and then calculates the position of that date on the calendar and clicks it.
-        It contains a helper function called week() which gathers the week number a certain date is in, ex week 1, week 2
-        '''
-
-        def weekdayConver(curDate):
-            '''
-            Convert the normal return values of .weekday() to the needed values for this program where Sunday must be 0,
-            Monday 1...
-            :param curDate: Obj of the current date or any date you choose to input
-            :return: int for each day of the week with Sun as 0
-            '''
-
-            day = curDate.weekday()  # extract the weekday int from the datetime object
-
-            if day == 6: # Sunday
-                return 0 # convert to 0 as Sunday
-            if day == 5: # Sat
-                return 6
-            if day == 4: # Fri
-                return 5
-            if day == 3:
-                return 4
-            if day == 2:
-                return 3
-            if day == 1:
-                return 2
-            if day == 0:
-                return 1
-
-        def week():  # date=curDate.day, year=curDate.year, month=curDate.month
-            '''
-            This function determines the week number within a month a given date resides. For example which week is Dec.
-            14th.
-            :param date:  int, current date
-            :param year: int current year
-            :param month: int current month
-            :return: int, the week a given date resides eg: 1,2,3,4,5
-            '''
-            # Create a date object
-            dateObj = datetime.date.today()  # (year, month, date)
-
-            # Calculate the week number within the month
-            first_day_of_month = dateObj.replace(day=1)  # Get the first day of the month
-            offset = (
-                             first_day_of_month.weekday() - 6) % 7  # Calculate the offset for Sunday as the first day of the week
-            adjusted_date = first_day_of_month - datetime.timedelta(days=offset)  # Adjust the date to start on a Sunday
-            week_number = (dateObj - adjusted_date).days // 7 + 1  # Calculate the week number
-
-            return week_number
-
-        curDate = datetime.date.today()  # get date object for current day; datetime.date.today() gives all three values ymd
-        day = weekdayConver(
-            curDate)  # extract the weekday from the current date object as an int 0-6 for Mon-Sat. This is done with a helper func.
-        # print(day)
-        # print(week())
-        yDiff = 32  # number of pixels between adjacent rows (eg week 1 - week 2) (work 32, home 37)
-        xDiff = 36  # number of pixels between immediately adjacent days of week (eg:mon-tues) (work 36, home 44)
-        xDefault = 851  # 36 pixel difference (work 851, home com 857)
-        yDefault = 301  # (work 301, home com 381) (x=857, y=378)
-
-        x = xDefault + (day * xDiff)
-
-        if week() == 1:
-            y = yDefault  # if needed the first week of the month supply only the yDefault
-        else:  # if needing other weeks, subtract 1 and mulitply by the yDiff (pixel difference) week 2 = (2-1)*yDiff
-            y = yDefault + ((week() - 1) * yDiff)
-        print(x, y)
-        self.moveMouse(x, y, 0.5, 'y')
-
 
 class CheckForElem:
 
@@ -397,25 +251,26 @@ class  AutomationSet:
         :return: none
         '''
 
-        self.buildActualFuncsList()  # Build the actual functions. This populates the actualFunctions list with the callable functions
+        if len(self.actualFunctions) == 0:
+            self.buildActualFuncsList()  # Build the actual functions. This populates the actualFunctions list with the callable functions
+        else:
         ###### Running the User's Set of Automations ######
 
         # Run the list of function calls with arguments
-        print('Running automation\n')
-        for list in self.actualFunctions:  # access the list in the list
-            if list[0] == self.pyAutogui.moveMouse:
-                list[0](list[1][0], list[1][1], list[2],list[3])  # access each item in the internal list and input arguments
-            if list[0] == self.checkForElement.confirmColour:
-                list[0](list[1][0][0], list[1][0][1], (list[1][1]))  # [function,((x,y),(r,g,b))]
-            if list[0] == self.pyAutogui.type:
-                list[0](list[1], list[2])  # [function,((x,y),(r,g,b))]
-            if list[0] == self.pyAutogui.pressKeys:
-                list[0](list[1][0], list[1][1])  # [function,(holdKey,tapKey)]
+            print('Running automation\n')
+            for list in self.actualFunctions:  # access the list in the list
+                if list[0] == self.pyAutogui.moveMouse:
+                    list[0](list[1][0], list[1][1], list[2],list[3])  # access each item in the internal list and input arguments
+                if list[0] == self.checkForElement.confirmColour:
+                    list[0](list[1][0][0], list[1][0][1], (list[1][1]))  # [function,((x,y),(r,g,b))]
+                if list[0] == self.pyAutogui.type:
+                    list[0](list[1], list[2])  # [function,((x,y),(r,g,b))]
+                if list[0] == self.pyAutogui.pressKeys:
+                    list[0](list[1][0], list[1][1])  # [function,(holdKey,tapKey)]
 
-# List holding all individual automation objects; added in by the createAutomation function
-automationObjList=[]
 
-def createAutomation():
+
+def createAutomation(automationObjList):
 
     '''
     This function takes the user through a series of prompts in order to set up a new automation.
@@ -423,7 +278,7 @@ def createAutomation():
     For example does it require a click of the mouse, and does it require confirming if a given button
     is even going to be loaded on the screen. Will text need to be inputted etc.
     :return: none
-    inputs: none
+    inputs: List: automationObjList -- List of all AutomationSet objects; each object is one complete automated set of tasks
     '''
 
     checkForElement=CheckForElem() # Instantiate a Check for Element Class (contains methods needed for checking colours)
@@ -434,16 +289,17 @@ def createAutomation():
     briefDes = input('Give a brief one sentence description of your automation: ') # Also prompt user for a short description
     automationObjList[-1].setBriefDescription(briefDes) # set description in object
 
-    ##########################################################
-    ##### Gathering User's Plans for an Automation Loop ######
-    ##########################################################
+    ############################################################################
+    ##### A Loop Gathering Each Aspect of a User's Plans for an Automation  ####
+    ############################################################################
+
     runMainLoop=True
     while runMainLoop:  # loop for gathering input from user. Stopping this loop will move out of the user gathering mode and into run mode
 
-        mainRawInput = input('Press\n1 for move mouse and click\n2 to type\n3 to press key combination\n4 to finish and save')  # prompt user
+        mainRawInput = input('Press:\n1 for move mouse and click\n2 to type\n3 to press key combination\n4 to finish and save\n')  # prompt user
 
         if mainRawInput == '1':  # if user wants to add mouse moves
-            rawInput = input('Press\n1 to add a colour check for a web element\n2 to simply click mouse (without colour check)\n')  # mouse only, or with colour check
+            rawInput = input('Press:\n1 to add a colour check for a web element\n2 to simply click mouse (without colour check)\n')  # mouse only, or with colour check
 
             if rawInput == '1':  # if adding colour check
                 print('Use Main Monitor Only: Place mouse over the top of a stable coloured element of the program or website -- 5 seconds\n')
@@ -451,17 +307,17 @@ def createAutomation():
                 posAndCol = checkForElement.getColour()  # returns tuple of mouse pos, colour ((x,y),(r,g,b)) ## Takes colour from main monitor only
                 print('## Colour value acquired ##')
                 automationObjList[-1].writeOutlineOfFunctions(['checkForElement.confirmColour', posAndCol])
-                rawInput2 = input('Press\nNow move mouse to clicking position and press 1\n')
+                rawInput2 = input('Press:\nNow move mouse to clicking position and press 1\n')
                 if rawInput2 == '1':
                     print('Keep mouse in position -- 3 seconds\n')  # prompt user to move mouse into desired position
                     time.sleep(3)  # give 3 seconds to user to move mouse
                     mousePos = ag.position()  # get position of mouse as tuple (x,y)
                     automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.moveMouse', mousePos, 0.5, 'y'])  # append function call and arguments with delay and click
-                    print('Click position information complete, thank you.\n')
+                    print('Click-position information complete, thank you.\n')
 
             if rawInput == '2':
-                print('Move mouse into clicking position -- 3 seconds\n')  # prompt user to move mouse into desired position
-                time.sleep(3)  # give 3 seconds to user to move mouse
+                print('Move mouse into clicking position -- 4 seconds\n')  # prompt user to move mouse into desired position
+                time.sleep(4)  # give 3 seconds to user to move mouse
                 mousePos = ag.position()  # get position of mouse as tuple (x,y)
                 automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.moveMouse', mousePos, 0.5, 'y'])  # append function call and arguments with delay and click
 
@@ -491,7 +347,7 @@ def saveFile(dataToSave, filename):
         fp.close()
 
 
-def loadFile(filename):
-
-    with open(filename, "rb") as fp:  # Unpickling
-        return pickle.load(fp)
+# def loadFile(filename): # No longer used here. This was moved to the TK Main function to load all neccessary data before starting the program
+#
+#     with open(filename, "rb") as fp:  # Unpickling
+#         return pickle.load(fp)
