@@ -251,7 +251,8 @@ class  AutomationSet:
         :return: none
         '''
 
-        if len(self.actualFunctions) == 0:
+        # ONly populate the list on the first call of the automation for any given session so as not to over populate the list
+        if len(self.actualFunctions) == 0: # Check if list is empty (not been populated) and if empty populate with functions
             self.buildActualFuncsList()  # Build the actual functions. This populates the actualFunctions list with the callable functions
         else:
         ###### Running the User's Set of Automations ######
