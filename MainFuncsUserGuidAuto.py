@@ -251,10 +251,21 @@ class  AutomationSet:
         :return: none
         '''
 
-        # ONly populate the list on the first call of the automation for any given session so as not to over populate the list
+        # Only populate the list on the first call of the automation for any given session so as not to over populate the list
         if len(self.actualFunctions) == 0: # Check if list is empty (not been populated) and if empty populate with functions
             self.buildActualFuncsList()  # Build the actual functions. This populates the actualFunctions list with the callable functions
+            print('Running automation\n')
+            for list in self.actualFunctions:  # access the list in the list
+                if list[0] == self.pyAutogui.moveMouse:
+                    list[0](list[1][0], list[1][1], list[2], list[3])  # access each item in the internal list and input arguments
+                if list[0] == self.checkForElement.confirmColour:
+                    list[0](list[1][0][0], list[1][0][1], (list[1][1]))  # [function,((x,y),(r,g,b))]
+                if list[0] == self.pyAutogui.type:
+                    list[0](list[1], list[2])  # [function,((x,y),(r,g,b))]
+                if list[0] == self.pyAutogui.pressKeys:
+                    list[0](list[1][0], list[1][1])  # [function,(holdKey,tapKey)]
         else:
+
         ###### Running the User's Set of Automations ######
 
         # Run the list of function calls with arguments
