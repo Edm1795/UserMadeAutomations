@@ -14,7 +14,7 @@ class MainWindow:
 
         # Master Window
         self.master = master
-        self.master.title('User Created Automations 1.2')
+        self.master.title('User Created Automations 1.3')
         self.master.geometry("+1200+200")  # position of the window in the screen (200x300) ("-3300+500")
         self.master.geometry("500x400")  # set initial size of the root window (master) (1500x700);
         # if not set, the frames will fill the master window
@@ -57,13 +57,12 @@ class MainWindow:
 
         windll.shcore.SetProcessDpiAwareness(1)  # used for fixing blurry fonts on win 10 and 11
 
-        #  Entry widgets
-        self.entry = Entry(self.frame0, width=10)
-        self.entry.pack()
+
+
 
     def loadButtons(self):
         for object in self.automationObjList: # take each Automation object and instantiate a Button
-            self.buttonList.append(Button(self.frame1, text=object.getName(), width=12, command=lambda:object.runAutomation()))
+            self.buttonList.append(Button(self.frame1, text=object.getName(), width=12, command=object.runAutomation))
         for button in self.buttonList: # for each button pack it
             button.pack()
 
