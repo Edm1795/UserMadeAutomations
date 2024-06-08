@@ -9,6 +9,7 @@ import pickle
 
 # List holding all individual automation objects; used by createAutomation function
 automationObjList=[]
+deletedAutomations=[]
 
 
 class PYautogui:
@@ -251,38 +252,24 @@ class  AutomationSet:
         :return: none
         '''
 
-        # Only populate the list on the first call of the automation for any given session so as not to over populate the list
-        if len(self.actualFunctions) == 0: # Check if list is empty (not been populated) and if empty populate with functions
-            self.buildActualFuncsList()  # Build the actual functions. This populates the actualFunctions list with the callable functions
-            print('Running automation\n')
-            for list in self.actualFunctions:  # access the list in the list
-                if list[0] == self.pyAutogui.moveMouse:
-                    list[0](list[1][0], list[1][1], list[2], list[3])  # access each item in the internal list and input arguments
-                if list[0] == self.checkForElement.confirmColour:
-                    list[0](list[1][0][0], list[1][0][1], (list[1][1]))  # [function,((x,y),(r,g,b))]
-                if list[0] == self.pyAutogui.type:
-                    list[0](list[1], list[2])  # [function,((x,y),(r,g,b))]
-                if list[0] == self.pyAutogui.pressKeys:
-                    list[0](list[1][0], list[1][1])  # [function,(holdKey,tapKey)]
-        else:
-
+        self.buildActualFuncsList()  # Build the actual functions. This populates the actualFunctions list with the callable functions
         ###### Running the User's Set of Automations ######
 
         # Run the list of function calls with arguments
-            print('Running automation\n')
-            for list in self.actualFunctions:  # access the list in the list
-                if list[0] == self.pyAutogui.moveMouse:
-                    list[0](list[1][0], list[1][1], list[2],list[3])  # access each item in the internal list and input arguments
-                if list[0] == self.checkForElement.confirmColour:
-                    list[0](list[1][0][0], list[1][0][1], (list[1][1]))  # [function,((x,y),(r,g,b))]
-                if list[0] == self.pyAutogui.type:
-                    list[0](list[1], list[2])  # [function,((x,y),(r,g,b))]
-                if list[0] == self.pyAutogui.pressKeys:
-                    list[0](list[1][0], list[1][1])  # [function,(holdKey,tapKey)]
+        print('Running automation\n')
+        for list in self.actualFunctions:  # access the list in the list
+            if list[0] == self.pyAutogui.moveMouse:
+                list[0](list[1][0], list[1][1], list[2],list[3])  # access each item in the internal list and input arguments
+            if list[0] == self.checkForElement.confirmColour:
+                list[0](list[1][0][0], list[1][0][1], (list[1][1]))  # [function,((x,y),(r,g,b))]
+            if list[0] == self.pyAutogui.type:
+                list[0](list[1], list[2])  # [function,((x,y),(r,g,b))]
+            if list[0] == self.pyAutogui.pressKeys:
+                list[0](list[1][0], list[1][1])  # [function,(holdKey,tapKey)]
 
 
 
-def createAutomation(automationObjList):
+def createAutomation(automationObjList,mainWin):
 
     '''
     This function takes the user through a series of prompts in order to set up a new automation.
@@ -296,9 +283,14 @@ def createAutomation(automationObjList):
     checkForElement=CheckForElem() # Instantiate a Check for Element Class (contains methods needed for checking colours)
     automationObjList.append(AutomationSet()) # Instantiate an AutomationSet Object
 
-    name = input('Give a short one word name to your automation: ') # Prompt user to give the automation a name which goes onto the button on the TK interface
+    # name=mainWin.on_win_request('Give a short one word name to your automation: ')
+    # print('from main function module: ',name)
+    name = input('Give a short one word name to your automation: ')
+    # name = input('Give a short one word name to your automation: ') # Prompt user to give the automation a name which goes onto the button on the TK interface
     automationObjList[-1].setName(name) # set name into the object which will be the last object in the list
-    briefDes = input('Give a brief one sentence description of your automation: ') # Also prompt user for a short description
+
+    # briefDes = mainWin.on_win_request('Give a brief one sentence description of your automation: ') # Also prompt user for a short description
+    briefDes = input('Give a brief one sentence description of your automation: ')
     automationObjList[-1].setBriefDescription(briefDes) # set description in object
 
     ############################################################################
@@ -350,6 +342,8 @@ def createAutomation(automationObjList):
         if mainRawInput == '4':  # if user wants to complete building the sequence of clicks
             print('**** Automation file saved.  All is Complete **** ')
             saveFile(automationObjList, "Automations")
+            mainWin.clearButtons()
+            mainWin.loadButtons()
             runMainLoop = False
 
 def saveFile(dataToSave, filename):
@@ -357,6 +351,23 @@ def saveFile(dataToSave, filename):
     with open(filename, "wb") as fp:  # Pickling
         pickle.dump(dataToSave, fp)
         fp.close()
+
+def deleteItem(attribute,deletedAutomations,automationObjList,mainWin):
+    print('delete item accessed')
+    print('attribute is:',attribute)
+    c=0
+    for object in automationObjList:
+        if object.getName()==attribute:
+            deletedAutomations=automationObjList.pop(c)
+            print("item deleted")
+            saveFile(automationObjList, "Automations")
+            mainWin.clearButtons()
+            mainWin.loadButtons()
+        else:
+            c+=1
+
+
+
 
 
 # def loadFile(filename): # No longer used here. This was moved to the TK Main function to load all neccessary data before starting the program
