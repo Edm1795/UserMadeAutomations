@@ -5,8 +5,8 @@
 
 from tkinter import *
 from ctypes import windll  # used for fixing blurry fonts on win 10 and 11 (also  windll.shcore.SetProcessDpiAwareness(1))
-from MainFuncsTestingGround import *
-# from MainFuncsUserGuidAuto import *
+#from MainFuncsTestingGround import *
+from MainFuncsUserGuidAuto import *
 from os.path import exists
 
 
@@ -16,7 +16,7 @@ class MainWindow:
 
         # Master Window
         self.master = master
-        self.master.title('User Created Automations 1.2')
+        self.master.title('User Created Automations 1.3')
         self.master.geometry("+1400+200")  # position of the window in the screen (200x300) ("-3300+500")
         self.master.geometry("500x400")  # set initial size of the root window (master) (1500x700);
         # if not set, the frames will fill the master window
@@ -48,8 +48,7 @@ class MainWindow:
         self.createButton = Button(self.frame1, text="Create", width=12, command=lambda: createAutomation(self.automationObjList,mainWin))  # Button for creating a new automation
         self.createButton.pack()
 
-        self.createButton = Button(self.frame1, text="Test", width=12, command=lambda: self.frame())  # Button for creating a new automation
-        self.createButton.pack()
+
 
         # Button Lists
         self.automationObjList = automationObjList  # Load file storing each Automation Object
@@ -92,11 +91,13 @@ class MainWindow:
         for button in self.buttonList:
             button.destroy()
     def loadButtons(self):
+        if self.buttonList != None:
+            self.buttonList.clear()
         for object in self.automationObjList:  # take each Automation object and instantiate a Button
             self.buttonList.append(Button(self.frame1, text=object.getName(), width=12, command=object.runAutomation))
         for button in self.buttonList:  # for each button pack it
             button.pack()
-            button.bind("<Button-3>", lambda event: self.rightClick(event, button["text"]))
+            button.bind("<Button-3>", lambda event, a=button["text"]: self.rightClick(event, a))
 
     def on_win_request(self,promptText):
 
