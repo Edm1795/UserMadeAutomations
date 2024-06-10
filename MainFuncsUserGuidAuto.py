@@ -324,7 +324,7 @@ def createAutomation(automationObjList,mainWin):
                 time.sleep(4)  # give 3 seconds to user to move mouse
                 mousePos = ag.position()  # get position of mouse as tuple (x,y)
                 automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.moveMouse', mousePos, 0.5, 'y'])  # append function call and arguments with delay and click
-
+                print('Mouse click position acquired.\n')
         if mainRawInput == '2':
             rawText = input('Type the text you want entered: ')  # prompt user to move mouse into desired position
             enter = input("press 'y' to add enter")
@@ -340,7 +340,7 @@ def createAutomation(automationObjList,mainWin):
 
 
         if mainRawInput == '4':  # if user wants to complete building the sequence of clicks
-            print('**** Automation file saved.  All is Complete **** ')
+            print('**** Automation file saved.  All is Complete **** \n\n')
             saveFile(automationObjList, "Automations")
             mainWin.clearButtons()
             mainWin.loadButtons()
