@@ -353,16 +353,24 @@ def saveFile(dataToSave, filename):
         fp.close()
 
 def deleteItem(attribute,deletedAutomations,automationObjList,mainWin):
+    '''
+    This function deletes automations from a right click menu on top of any given automation button.
+    :param attribute: Str: the "text" attribute of each button (the name of the button which shows on the screen) used to access the right button to delete
+    :param deletedAutomations: List of deleted automations incase of reinstating
+    :param automationObjList: List of automation objects
+    :param mainWin: mainWin, used for calling methods on the interface to update the interface after deleting a button
+    :return: None
+    '''
     print('delete item accessed')
     print('attribute is:',attribute)
     c=0
     for object in automationObjList:
-        if object.getName()==attribute:
-            deletedAutomations=automationObjList.pop(c)
+        if object.getName()==attribute: # access the object associated with the given button on the screen by way of the name of that button
+            deletedAutomations=automationObjList.pop(c) # store the deleted button in a list
             print("item deleted")
-            saveFile(automationObjList, "Automations")
-            mainWin.clearButtons()
-            mainWin.loadButtons()
+            saveFile(automationObjList, "Automations") # Save the new file
+            mainWin.clearButtons() # Clear all buttons on the screen
+            mainWin.loadButtons() # Reload buttons (now without the deleted one) This also clears the self.buttonList before reloading the new buttons
         else:
             c+=1
 
