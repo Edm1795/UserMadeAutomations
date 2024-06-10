@@ -71,6 +71,15 @@ class MainWindow:
         self.frame1.update()
 
     def rightClick(self,event,attribute):
+        '''
+        This is the right click menu for each automation button. It allows you to delete a given automation using the deleteItem function. DeleteItem
+        takes an attribute (as given by the binding in the loadButtons method) in this case it takes the text of that button (a=button["text"]) as
+        a marker for that button so that it can delete the correct button. It accesses deletedAutomations to hold the deleted automation as a backup
+        in case of needing to reinstate the deleted automation, it accesses the automationObjList and the mainWin (for updating the screen)
+        :param event: events from the binding in loadButtons
+        :param attribute: The text attribute in other words the name of each button (for example, email, or schedule)
+        :return: None
+        '''
 
         self.m = Menu(self.master, tearoff=0)
         self.m.add_command(label="Delete", command=lambda: deleteItem(attribute, self.deletedAutomations,self.automationObjList,mainWin))
@@ -87,17 +96,29 @@ class MainWindow:
         self.frame2.destroy()
 
     def clearButtons(self):
+        '''
+        Removes all buttons from the display
+        '''
 
         for button in self.buttonList:
             button.destroy()
+
+
     def loadButtons(self):
+        '''
+        Loads the buttons onto the display. It creates a button object according to the list of automation objects and
+        appends those buttons to a list. Then it packs those buttons and adds a binding to the right click on each button.
+        First thing it checks if the buttonList contains any buttons (!= None) if it does it clears the list so as to start
+        with a clean list otherwise buttons can be duplicated to get generally messy. This is important when deleting buttons
+        and refreshing the screen within a single session.
+        '''
         if self.buttonList != None:
             self.buttonList.clear()
         for object in self.automationObjList:  # take each Automation object and instantiate a Button
             self.buttonList.append(Button(self.frame1, text=object.getName(), width=12, command=object.runAutomation))
         for button in self.buttonList:  # for each button pack it
             button.pack()
-            button.bind("<Button-3>", lambda event, a=button["text"]: self.rightClick(event, a))
+            button.bind("<Button-3>", lambda event, a=button["text"]: self.rightClick(event, a)) # Key is to include event and an attribute assignment in the lambda, then call both event and a in the function
 
     def on_win_request(self,promptText):
 
