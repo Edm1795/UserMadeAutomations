@@ -235,16 +235,19 @@ class  AutomationSet:
         '''
 
         ### Build the Function List (actualFuncCalls) from the Outline of Functions List (outlineOfFuncCallst) ###
+        if len(self.actualFunctions)==0:
 
-        for list in self.outlineOfFunctions:  # access the list in the list [['function name as string',parameters]]
-            if list[0] == 'pyAutogui.moveMouse': # if needing moveMouse, input moveMouse function with parameters
-                self.actualFunctions.append([self.pyAutogui.moveMouse, list[1], list[2], list[3]])
-            if list[0] == 'checkForElement.confirmColour': # if needing a colour check (element check), input colour check function with parameters
-                self.actualFunctions.append([self.checkForElement.confirmColour, list[1]])
-            if list[0] == 'pyAutogui.type': # if needing to type characters  input type function
-                self.actualFunctions.append([self.pyAutogui.type, list[1], list[2]])
-            if list[0] == 'pyAutogui.pressKeys': # if needing to press a key combination (hotkeys)
-                self.actualFunctions.append([self.pyAutogui.pressKeys, (list[1][0], list[1][1])]) # arguments come inside a tuple (holdKey,tapKey)
+            for list in self.outlineOfFunctions:  # access the list in the list [['function name as string',parameters]]
+                if list[0] == 'pyAutogui.moveMouse': # if needing moveMouse, input moveMouse function with parameters
+                    self.actualFunctions.append([self.pyAutogui.moveMouse, list[1], list[2], list[3]])
+                if list[0] == 'checkForElement.confirmColour': # if needing a colour check (element check), input colour check function with parameters
+                    self.actualFunctions.append([self.checkForElement.confirmColour, list[1]])
+                if list[0] == 'pyAutogui.type': # if needing to type characters  input type function
+                    self.actualFunctions.append([self.pyAutogui.type, list[1], list[2]])
+                if list[0] == 'pyAutogui.pressKeys': # if needing to press a key combination (hotkeys)
+                    self.actualFunctions.append([self.pyAutogui.pressKeys, (list[1][0], list[1][1])]) # arguments come inside a tuple (holdKey,tapKey)
+            else:
+                return
     def runAutomation(self):
         '''
         This method runs the list of automation function calls from the actualFunctions list. It calls the functions
