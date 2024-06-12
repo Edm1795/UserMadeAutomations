@@ -16,7 +16,7 @@ class MainWindow:
 
         # Master Window
         self.master = master
-        self.master.title('User Created Automations 1.2')
+        self.master.title('One Click 1.32')
         self.master.geometry("+1400+200")  # position of the window in the screen (200x300) ("-3300+500")
         self.master.geometry("500x400")  # set initial size of the root window (master) (1500x700);
         # if not set, the frames will fill the master window
@@ -45,7 +45,7 @@ class MainWindow:
         self.frame2.grid_propagate(0)
 
         # Default Buttons
-        self.createButton = Button(self.frame1, text="Create", width=12, command=lambda: createAutomation(self.automationObjList,mainWin))  # Button for creating a new automation
+        self.createButton = Button(self.frame1, text="Create", width=12, bg="#859AFF",command=lambda: createAutomation(self.automationObjList,mainWin))  # Button for creating a new automation
         self.createButton.pack()
 
 
