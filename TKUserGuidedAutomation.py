@@ -16,7 +16,7 @@ class MainWindow:
 
         # Master Window
         self.master = master
-        self.master.title('One Click 1.32')
+        self.master.title('One Click 1.33')
         self.master.geometry("+1400+200")  # position of the window in the screen (200x300) ("-3300+500")
         self.master.geometry("500x400")  # set initial size of the root window (master) (1500x700);
         # if not set, the frames will fill the master window
