@@ -141,6 +141,21 @@ class CheckForElem:
         mousePos = ag.position() # get position of the mouse (x,y)
         return (mousePos,ag.pixel(mousePos[0],mousePos[1])) # return the pixel value for the given mousePos ((x,y),(r,g,b))
 
+    def getColourDelayed(self):
+
+        '''
+        Gets the colour value of the pixel at the current position of the mouse and delays between getting the coordinates
+        and getting the colour; this allows acquiring the correct colour for elements that change colour when hovering over them
+        with the mouse. You can get the coordinates, then move the mouse, then get the colour.
+        :return: a tuple of two tuples, the mouse position and colour value at that position ((x,y),(r,g,b))
+        '''
+        mousePos = ag.position() # get position of the mouse (x,y)
+        print('Mouse position acquired.')
+        print('Move the mouse off of the element - 5 seconds')
+        time.sleep(5)
+        print(mousePos,ag.pixel(mousePos[0],mousePos[1]))
+        return (mousePos,ag.pixel(mousePos[0],mousePos[1])) # return the pixel value for the given mousePos ((x,y),(r,g,b))
+
 class TimeValues:
     '''
     A class which holds a variety of time values to use for moving the mouse accross the screen.
@@ -309,12 +324,12 @@ def createAutomation(automationObjList,mainWin):
             rawInput = input('Press:\n1 to add a colour check for a web element\n2 to simply click mouse (without colour check)\n')  # mouse only, or with colour check
 
             if rawInput == '1':  # if adding colour check
-                print('Use Main Monitor Only: Place mouse over the top of a stable coloured element of the program or website -- 5 seconds\n')
+                print('Use Main Monitor Only: Place mouse over the top of a coloured element of the program or website -- 5 seconds\n')
                 time.sleep(5)
-                posAndCol = checkForElement.getColour()  # returns tuple of mouse pos, colour ((x,y),(r,g,b)) ## Takes colour from main monitor only
+                posAndCol = checkForElement.getColourDelayed()  # returns tuple of mouse pos, colour ((x,y),(r,g,b)) ## Takes colour from main monitor only
                 print('## Colour value acquired ##')
                 automationObjList[-1].writeOutlineOfFunctions(['checkForElement.confirmColour', posAndCol])
-                rawInput2 = input('Press:\nNow move mouse to clicking position and press 1\n')
+                rawInput2 = input('Now move mouse to clicking position and press 1\n')
                 if rawInput2 == '1':
                     print('Keep mouse in position -- 3 seconds\n')  # prompt user to move mouse into desired position
                     time.sleep(3)  # give 3 seconds to user to move mouse
