@@ -189,6 +189,11 @@ class TimeValues:
 
 
 class  AutomationSet:
+    
+    '''
+    Objects of this class are the crux of the program. These objects contain all of the automation movements and actions created by the
+    createAutomation function. It also builds the real code for each automation, and runs that code.
+    '''
 
     def __init__(self):
 
@@ -370,7 +375,7 @@ def saveFile(dataToSave, filename):
         pickle.dump(dataToSave, fp)
         fp.close()
 
-def deleteItem(attribute,deletedAutomations,automationObjList,mainWin):
+def  deleteItem(attribute,deletedAutomations,automationObjList,mainWin):
     print('delete item accessed')
     print('attribute is:',attribute)
     c=0
