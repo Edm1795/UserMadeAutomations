@@ -5,8 +5,8 @@
 
 from tkinter import *
 from ctypes import windll  # used for fixing blurry fonts on win 10 and 11 (also  windll.shcore.SetProcessDpiAwareness(1))
-from MainFuncsTestingGround import *
-# from MainFuncsUserGuidAuto import *
+# from MainFuncsTestingGround import *
+from MainFuncsUserGuidAuto import *
 from os.path import exists
 
 
@@ -16,7 +16,7 @@ class MainWindow:
 
         # Master Window
         self.master = master
-        self.master.title('One Click 1.33')
+        self.master.title('User Created Automations 1.33')
         self.master.geometry("+1400+200")  # position of the window in the screen (200x300) ("-3300+500")
         self.master.geometry("500x400")  # set initial size of the root window (master) (1500x700);
         # if not set, the frames will fill the master window
@@ -45,8 +45,12 @@ class MainWindow:
         self.frame2.grid_propagate(0)
 
         # Default Buttons
-        self.createButton = Button(self.frame1, text="Create", width=12, bg="#859AFF",command=lambda: createAutomation(self.automationObjList,mainWin))  # Button for creating a new automation
+        self.createButton = Button(self.frame1, text="Create", width=12, bg="#859AFF", command=lambda: createAutomation(self.automationObjList,mainWin))  # Button for creating a new automation
         self.createButton.pack()
+
+        # this is used to get the exact default button colour regardless of platform progam is run on, hence this button is not packed to screen
+        self.colourCheckButton=Button(self.frame1, text="", width=12)
+        self.defaultButtonColour=self.colourCheckButton['bg']
 
 
 
@@ -75,7 +79,7 @@ class MainWindow:
         self.m = Menu(self.master, tearoff=0)
         self.m.add_command(label="Delete", command=lambda: deleteItem(attribute, self.deletedAutomations,self.automationObjList,mainWin))
         self.m.add_command(label="Rename", command=lambda: renameItem(attribute,self.automationObjList,mainWin))
-        self.m.add_command(label="Paste")
+        self.m.add_command(label="Colour", command=lambda: setButtonColour(attribute,self.automationObjList,mainWin))
         self.m.add_command(label="Reload")
         self.m.add_separator()
         self.m.add_command(label="Rename")
@@ -94,7 +98,11 @@ class MainWindow:
         if self.buttonList != None:
             self.buttonList.clear()
         for object in self.automationObjList:  # take each Automation object and instantiate a Button
-            self.buttonList.append(Button(self.frame1, text=object.getName(), width=12, command=object.runAutomation))
+            if object.getColour()=='':
+                colour=self.defaultButtonColour
+            else:
+                colour=object.getColour()
+            self.buttonList.append(Button(self.frame1, text=object.getName(), width=12, bg=colour, command=object.runAutomation))
         for button in self.buttonList:  # for each button pack it
             button.pack()
             button.bind("<Button-3>", lambda event, a=button["text"]: self.rightClick(event, a))
