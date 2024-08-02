@@ -4,6 +4,7 @@
 
 import pyautogui as ag
 import time
+import os
 import datetime
 import pickle
 
@@ -73,6 +74,17 @@ class PYautogui:
             ag.press('enter')
         if enter =='n':
             return
+
+    def openFile(self,filePath,fileName):
+        '''
+        This uses the os module to open files. From the prompts to the user, this gets the file path and file name
+        which are then used by os to open the file
+        :param filePath: str of file path eg: C:/Documents
+        :param fileName: str of file name and extension eg: dates.doc, list.pdf
+        :return: none
+        '''
+        filePathandName=filePath+fileName
+        os.startfile(filePathandName)
 
 class CheckForElem:
 
@@ -281,12 +293,14 @@ class AutomationSet:
                     self.actualFunctions.append([self.pyAutogui.type, list[1], list[2]])
                 if list[0] == 'pyAutogui.pressKeys': # if needing to press a key combination (hotkeys)
                     self.actualFunctions.append([self.pyAutogui.pressKeys, (list[1][0], list[1][1])]) # arguments come inside a tuple (holdKey,tapKey)
+                if list[0] == 'pyAutogui.openFile': # if needing to open a file
+                    self.actualFunctions.append([self.pyAutogui.openFile, (list[1][0], list[1][1])]) # arguments are filepath and filename
             else:
                 return
     def runAutomation(self):
         '''
-        This method runs the list of automation function calls from the actualFunctions list. It calls the functions
-        in order from the list and adds formats the arguments if needed
+        This method is called by the buttons on the interface and it runs the list of automation function calls from the actualFunctions list.
+        It calls the functions in order from the list and adds formats the arguments if needed
         :return: none
         '''
 
@@ -304,6 +318,9 @@ class AutomationSet:
                 list[0](list[1], list[2])  # [function,((x,y),(r,g,b))]
             if list[0] == self.pyAutogui.pressKeys:
                 list[0](list[1][0], list[1][1])  # [function,(holdKey,tapKey)]
+            if list[0] == self.pyAutogui.openFile:
+                list[0](list[1][0], list[1][1])  # [function,(fileName,filePath)]
+
 
 
 
@@ -338,7 +355,7 @@ def createAutomation(automationObjList,mainWin):
     runMainLoop=True
     while runMainLoop:  # loop for gathering input from user. Stopping this loop will move out of the user gathering mode and into run mode
 
-        mainRawInput = input('Press:\n1 for move mouse and click\n2 to type\n3 to press key combination\n4 to finish and save\n')  # prompt user
+        mainRawInput = input('Press:\n1 for move mouse and click\n2 to type\n3 to press key combination\n4 to finish and save\n5 to open a file')  # prompt user
 
         if mainRawInput == '1':  # if user wants to add mouse moves
             rawInput = input('Press:\n1 to add a colour check for a web element\n2 to simply click mouse (without colour check)\n')  # mouse only, or with colour check
@@ -383,6 +400,14 @@ def createAutomation(automationObjList,mainWin):
             mainWin.clearButtons()
             mainWin.loadButtons()
             runMainLoop = False
+
+        if mainRawInput == '5':
+            filePath = input("copy and paste file path here (eg: 'C:\\Documents\\Files\\') : ")
+            print("path received")
+            fileName = input("input exact file name here with extension (eg: 'dates of travel.pdf' :")
+            print("file name received")
+            automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.openFile', (filePath,fileName)])
+
 
 def saveFile(dataToSave, filename):
 
