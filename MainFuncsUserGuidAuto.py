@@ -188,8 +188,8 @@ class TimeValues:
         return self.slow
 
 
-class  AutomationSet:
-    
+class AutomationSet:
+
     '''
     Objects of this class are the crux of the program. These objects contain all of the automation movements and actions created by the
     createAutomation function. It also builds the real code for each automation, and runs that code.
@@ -213,6 +213,9 @@ class  AutomationSet:
         # the actualFunctions will be empty
         # self.buildActualFuncsList() # Build the actual functions. This populates the actualFunctions list with the callable functions
 
+        # Colour of button on interface as hex str
+        self.buttonColour=''
+
     def setName(self,name):
         '''
         Single word name given to the automation which becomes the title of the button on screen and given by the user.
@@ -227,6 +230,18 @@ class  AutomationSet:
     def getName(self):
 
         return self.name
+
+    def setColour(self,colour):
+        '''
+        Set colour of button on interface
+        :param colour: str of hex '#000000'
+        '''
+
+        self.buttonColour=colour
+
+    def getColour(self):
+
+        return self.buttonColour
 
     def writeOutlineOfFunctions(self,function):
 
@@ -375,7 +390,7 @@ def saveFile(dataToSave, filename):
         pickle.dump(dataToSave, fp)
         fp.close()
 
-def  deleteItem(attribute,deletedAutomations,automationObjList,mainWin):
+def deleteItem(attribute,deletedAutomations,automationObjList,mainWin):
     print('delete item accessed')
     print('attribute is:',attribute)
     c=0
@@ -398,6 +413,14 @@ def renameItem(attribute,automationObjList,mainWin):
             mainWin.clearButtons()
             mainWin.loadButtons()
 
+def setButtonColour(attribute,automationObjList,mainWin):
+    colour=input('Set colour to (use hex #112255 or colour name): ')
+    for object in automationObjList:
+        if object.getName()==attribute:
+            object.setColour(colour)
+            saveFile(automationObjList, "Automations")
+            mainWin.clearButtons()
+            mainWin.loadButtons()
 
 
 # def loadFile(filename): # No longer used here. This was moved to the TK Main function to load all neccessary data before starting the program
