@@ -253,7 +253,10 @@ class AutomationSet:
 
     def getColour(self):
 
-        return self.buttonColour
+        try:
+            return self.buttonColour
+        except:
+            pass
 
     def writeOutlineOfFunctions(self,function):
 
