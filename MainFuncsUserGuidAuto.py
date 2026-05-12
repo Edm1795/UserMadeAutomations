@@ -1,3 +1,4 @@
+### Note: import pillow version 10.2.0 on the pycharm editor rather than the latest version, otherwise there is no compatibility. Pillow is used by pyautogui
 
 # The class holding the actual automation information for a single unified set of automations. The name of the automation, the description of each step
 # and the ability to create the functions
