@@ -288,7 +288,7 @@ class AutomationSet:
         ### Build the Function List (actualFuncCalls) from the Outline of Functions List (outlineOfFuncCallst) ###
         if len(self.actualFunctions)==0:
 
-            for list in self.outlineOfFunctions:  # access the list in the list [['function name as string',parameters]]
+            for itemList in self.outlineOfFunctions:  # access the list in the list [['function name as string',parameters]]
                 if list[0] == 'pyAutogui.moveMouse': # if needing moveMouse, input moveMouse function with parameters
                     self.actualFunctions.append([self.pyAutogui.moveMouse, list[1], list[2], list[3]])
                 if list[0] == 'checkForElement.confirmColour': # if needing a colour check (element check), input colour check function with parameters
@@ -313,17 +313,17 @@ class AutomationSet:
 
         # Run the list of function calls with arguments
         print('Running automation\n')
-        for list in self.actualFunctions:  # access the list in the list
-            if list[0] == self.pyAutogui.moveMouse:
-                list[0](list[1][0], list[1][1], list[2],list[3])  # access each item in the internal list and input arguments
-            if list[0] == self.checkForElement.confirmColour:
-                list[0](list[1][0][0], list[1][0][1], (list[1][1]))  # [function,((x,y),(r,g,b))]
-            if list[0] == self.pyAutogui.type:
-                list[0](list[1], list[2])  # [function,((x,y),(r,g,b))]
-            if list[0] == self.pyAutogui.pressKeys:
-                list[0](list[1][0], list[1][1])  # [function,(holdKey,tapKey)]
-            if list[0] == self.pyAutogui.openFile:
-                list[0](list[1][0], list[1][1])  # [function,(fileName,filePath)]
+        for itemList in self.actualFunctions:  # access the list in the list
+            if itemList[0] == self.pyAutogui.moveMouse:
+                itemList[0](itemList[1][0], itemList[1][1], itemList[2],itemList[3])  # access each item in the internal list and input arguments
+            if itemList[0] == self.checkForElement.confirmColour:
+                itemList[0](itemList[1][0][0], itemList[1][0][1], (itemList[1][1]))  # [function,((x,y),(r,g,b))]
+            if itemList[0] == self.pyAutogui.type:
+                itemList[0](itemList[1], itemList[2])  # [function,((x,y),(r,g,b))]
+            if itemList[0] == self.pyAutogui.pressKeys:
+                itemList[0](itemList[1][0], itemList[1][1])  # [function,(holdKey,tapKey)]
+            if itemList[0] == self.pyAutogui.openFile:
+                itemList[0](itemList[1][0], itemList[1][1])  # [function,(fileName,filePath)]
 
 
 
