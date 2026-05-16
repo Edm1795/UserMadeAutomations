@@ -288,19 +288,17 @@ class AutomationSet:
         ### Build the Function List (actualFuncCalls) from the Outline of Functions List (outlineOfFuncCallst) ###
         if len(self.actualFunctions)==0:
 
-            for itemList in self.outlineOfFunctions:  # access the list in the list [['function name as string',parameters]]
-                if list[0] == 'pyAutogui.moveMouse': # if needing moveMouse, input moveMouse function with parameters
-                    self.actualFunctions.append([self.pyAutogui.moveMouse, list[1], list[2], list[3]])
-                if list[0] == 'checkForElement.confirmColour': # if needing a colour check (element check), input colour check function with parameters
-                    self.actualFunctions.append([self.checkForElement.confirmColour, list[1]])
-                if list[0] == 'pyAutogui.type': # if needing to type characters  input type function
-                    self.actualFunctions.append([self.pyAutogui.type, list[1], list[2]])
-                if list[0] == 'pyAutogui.pressKeys': # if needing to press a key combination (hotkeys)
-                    self.actualFunctions.append([self.pyAutogui.pressKeys, (list[1][0], list[1][1])]) # arguments come inside a tuple (holdKey,tapKey)
-                if list[0] == 'pyAutogui.openFile': # if needing to open a file
-                    self.actualFunctions.append([self.pyAutogui.openFile, (list[1][0], list[1][1])]) # arguments are filepath and filename
-            else:
-                return
+            for itemList in self.outlineOfFunctions:  # access the itemList in the itemList [['function name as string',parameters]]
+                if itemList[0] == 'pyAutogui.moveMouse':  # if needing moveMouse, input moveMouse function with parameters
+                    self.actualFunctions.append([self.pyAutogui.moveMouse, itemList[1], itemList[2], itemList[3]])
+                if itemList[0] == 'checkForElement.confirmColour':  # if needing a colour check (element check), input colour check function with parameters
+                    self.actualFunctions.append([self.checkForElement.confirmColour, itemList[1]])
+                if itemList[0] == 'pyAutogui.type':  # if needing to type characters  input type function
+                    self.actualFunctions.append([self.pyAutogui.type, itemList[1], itemList[2]])
+                if itemList[0] == 'pyAutogui.pressKeys':  # if needing to press a key combination (hotkeys)
+                    self.actualFunctions.append([self.pyAutogui.pressKeys, (itemList[1][0], itemList[1][1])])  # arguments come inside a tuple (holdKey,tapKey)
+                if itemList[0] == 'pyAutogui.openFile':  # if needing to open a file
+                    self.actualFunctions.append([self.pyAutogui.openFile, (itemList[1][0], itemList[1][1])])  # arguments are filepath and filename
     def runAutomation(self):
         '''
         This method is called by the buttons on the interface and it runs the list of automation function calls from the actualFunctions list.
