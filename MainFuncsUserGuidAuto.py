@@ -30,6 +30,8 @@ class Logger:
 
         logging.info(message)
 
+logger=Logger() # instantiate logger globally after defining the class, then use this object inside any class needed
+
 class PYautogui:
 
     '''
@@ -121,9 +123,9 @@ class CheckForElem:
     or a certain colour of pixel
     '''
 
-    def __init__(self):
+    def __init__(self,logger):
 
-        pass
+        self.logger=logger
 
     def confirmImage(self, image, sector, topLeftx=0, topLefty=0, bottomRightx=0, bottomRighty=0):
 
@@ -239,7 +241,9 @@ class AutomationSet:
     createAutomation function. It also builds the real code for each automation, and runs that code.
     '''
 
-    def __init__(self):
+    def __init__(self,logger):
+
+        self.logger=logger
 
         self.name=None # Name of the Automation Set. Eg: Email, Booking, Schedule
         self.briefDescription=None # Brief description of the automation
@@ -252,7 +256,7 @@ class AutomationSet:
         self.logger = Logger() # Instantiate the logger and send intot he PYautogui class
 
         self.pyAutogui=PYautogui(self.logger) # Instantiate the PYautogui class which contains all methods for automating
-        self.checkForElement=CheckForElem() # Instantiate CheckFor Element class
+        self.checkForElement=CheckForElem(self.logger) # Instantiate CheckFor Element class
 
 
         # This call actually needs to be later in the process. It is moved to inside the runAutomation() method
@@ -263,7 +267,6 @@ class AutomationSet:
         # Colour of button on interface as hex str
         self.buttonColour=''
 
-        self.logger.log(self.name)
 
     def setName(self,name):
         '''
@@ -347,6 +350,7 @@ class AutomationSet:
 
         # Run the list of function calls with arguments
         print('Running automation\n')
+        self.logger.log(self.getName())
         for itemList in self.actualFunctions:  # access the list in the list
             if itemList[0] == self.pyAutogui.moveMouse:
                 itemList[0](itemList[1][0], itemList[1][1], itemList[2],itemList[3])  # access each item in the internal list and input arguments
@@ -373,8 +377,8 @@ def createAutomation(automationObjList,mainWin):
     inputs: List: automationObjList -- List of all AutomationSet objects; each object is one complete automated set of tasks
     '''
 
-    checkForElement=CheckForElem() # Instantiate a Check for Element Class (contains methods needed for checking colours)
-    automationObjList.append(AutomationSet()) # Instantiate an AutomationSet Object
+    checkForElement=CheckForElem(logger) # Instantiate a Check for Element Class (contains methods needed for checking colours)
+    automationObjList.append(AutomationSet(logger)) # Instantiate an AutomationSet Object
 
     # name=mainWin.on_win_request('Give a short one word name to your automation: ')
     # print('from main function module: ',name)
