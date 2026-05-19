@@ -8,20 +8,37 @@ import time
 import os
 import datetime
 import pickle
+import logging
 
 # List holding all individual automation objects; used by createAutomation function
 automationObjList=[]
 deletedAutomations=[]
 
 
-class PYautogui:
+
+class Logger:
+
     '''
-    Class of PY Autogui functions
+    A class for logging all actions taken by the PYautogui class
     '''
 
     def __init__(self):
 
-        pass
+        logging.basicConfig(filename='automationLog.txt',level=logging.INFO,format='%(asctime)s - %(message)s')
+
+    def log(self, message):
+
+        logging.info(message)
+
+class PYautogui:
+
+    '''
+    Class of PY Autogui functions
+    '''
+
+    def __init__(self,logger):
+
+        self.logger=logger
 
 
     def moveMouse(self, horiz, vert, time, click):
@@ -37,11 +54,15 @@ class PYautogui:
         else:
             pass
 
+        self.logger.log(f'Moving mouse to: {horiz}, {vert} time: {time}')
+
     def click(self):
         '''
         Clicks the mouse
         '''
         ag.click()
+
+        self.logger.log(f'Mouse clicked')
 
     def drag(self, horiz, vert, duration, button):
 
@@ -50,6 +71,8 @@ class PYautogui:
         if button == 'r':
             button = 'right'
         ag.dragTo(horiz, vert, button=button, duration=duration)
+
+        self.logger.log(f'Mouse dragged: {horiz}, {vert} ,{button}, time: {time}')
 
     def pressKeys(self, holdKey, secondKey):
 
@@ -61,6 +84,8 @@ class PYautogui:
         ag.keyDown(holdKey)  # hold down the shift key
         ag.press(secondKey)  # press the left arrow key
         ag.keyUp(holdKey)
+
+        self.logger.log(f'Keys pressed: {holdKey}, {secondKey}')
 
     def type(self, letters, enter='n'):
         '''
@@ -75,6 +100,8 @@ class PYautogui:
             ag.press('enter')
         if enter =='n':
             return
+
+        self.logger.log(f'text typed: {letters}, enter pressed: {enter}')
 
     def openFile(self,filePath,fileName):
         '''
@@ -95,6 +122,7 @@ class CheckForElem:
     '''
 
     def __init__(self):
+
         pass
 
     def confirmImage(self, image, sector, topLeftx=0, topLefty=0, bottomRightx=0, bottomRighty=0):
@@ -142,6 +170,9 @@ class CheckForElem:
             else:
                 loop = False
         print('Colour confirmed ')
+
+        self.logger.log(f'Checking colour: colour value {colour}, confirmed at {x}, {y}')
+
         time.sleep(0.1)
         return True
 
@@ -218,8 +249,11 @@ class AutomationSet:
         # after restarting the program
         self.actualFunctions=[] # List of real functions in sequence built using the outlineOfFuncCalls directly above.
 
-        self.pyAutogui=PYautogui() # Instantiate the PYautogui class which contains all methods for automating
+        self.logger = Logger() # Instantiate the logger and send intot he PYautogui class
+
+        self.pyAutogui=PYautogui(self.logger) # Instantiate the PYautogui class which contains all methods for automating
         self.checkForElement=CheckForElem() # Instantiate CheckFor Element class
+
 
         # This call actually needs to be later in the process. It is moved to inside the runAutomation() method
         # when the class is first instantiated (during createAutomation) there is not yet a function outline and therefore
@@ -228,6 +262,8 @@ class AutomationSet:
 
         # Colour of button on interface as hex str
         self.buttonColour=''
+
+        self.logger.log(self.name)
 
     def setName(self,name):
         '''
