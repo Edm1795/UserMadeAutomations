@@ -16,9 +16,9 @@ class MainWindow:
 
         # Master Window
         self.master = master
-        self.master.title('User Created Automations 1.33')
-        self.master.geometry("-3500+90")  # position of the window in the screen (200x300) ("-3300+500")
-        self.master.geometry("300x580")  # set initial size of the root window (master) (1500x700);
+        self.master.title('One Click 2.0')
+        self.master.geometry("+1400+200")  # position of the window in the screen (200x300) ("-3300+500")
+        self.master.geometry("500x400")  # set initial size of the root window (master) (1500x700);
         # if not set, the frames will fill the master window
         # self.master.attributes('-fullscreen', True)
         screenWidth = self.master.winfo_screenwidth()
@@ -95,18 +95,19 @@ class MainWindow:
         for button in self.buttonList:
             button.destroy()
     def loadButtons(self):
+
         if self.buttonList != None:
             self.buttonList.clear()
-        for object in self.automationObjList:  # take each Automation object and instantiate a Button
-            if object.getColour()=='':
-                colour=self.defaultButtonColour
-            else:
-                colour=object.getColour()
 
-            try: # add try except incase the argument for bg is incorrect and throws an error
+        for object in self.automationObjList:  # take each Automation object and instantiate a Button
+            if object.getColour()=='': # if user has not set any colour, get default colour (line below)
+                colour=self.defaultButtonColour # acquire dfault colour as set for the system you are running on
+            else:
+                colour=object.getColour() # if user has set a colour, get that colour
+            try: # Try instantiating the button with colour given above, if error arises due to problematic input from user go to except
                 self.buttonList.append(Button(self.frame1, text=object.getName(), width=12, bg=colour, command=object.runAutomation))
-            except: # if error is thrown load with default colour on bg
-                self.buttonList.append(Button(self.frame1, text=object.getName(), width=12, bg=self.defaultButtonColour, command=object.runAutomation))
+            except: # If colour is problematic (ie a colour that does not exist) just create button without a colour (defualt colour)
+                self.buttonList.append(Button(self.frame1, text=object.getName(), width=12, command=object.runAutomation))
 
         for button in self.buttonList:  # for each button pack it
             button.pack()
