@@ -19,12 +19,12 @@ deletedAutomations=[]
 class Logger:
 
     '''
-    A class for logging all actions taken by the PYautogui class
+    A class for logging all actions taken by the PYautogui and CheckForElem class
     '''
 
     def __init__(self):
 
-        logging.basicConfig(filename='automationLog.txt',level=logging.INFO,format='%(asctime)s - %(message)s')
+        logging.basicConfig(filename='AutomationLog.txt',level=logging.INFO,format='%(asctime)s - %(message)s')
 
     def log(self, message):
 
@@ -164,16 +164,24 @@ class CheckForElem:
         :return: True once the colour is detected
         '''
 
+        tolVal=100 # value of colour tolerance for each base colour r,g,b (Eg: If red should be 100, but in fact is 200, still confirms as true)
+
         loop = True
+
         while loop:
+
+            current = ag.pixel(x, y)  # current colour at position to test for
+
             # use eyedroper in Firefox browser options to get colour then convert to rgb
-            if ag.pixelMatchesColor(x, y, colour) == False:  # colour must be sent as tuple (r,g,b)
+            if ag.pixelMatchesColor(x, y, colour,tolerance=tolVal) == False:  # colour must be sent as tuple (r,g,b); allow for tolerance of 20 on all colour bases r,g, and b.
+                time.sleep(0.01) # add a slight delay so as not to run the colour check too many times; This fixes its tendency to stall the system
                 continue
             else:
                 loop = False
+
         print('Colour confirmed ')
 
-        self.logger.log(f'Checking colour: colour value {colour}, confirmed at {x}, {y}')
+        self.logger.log(f'Colour confirmed. (Checking for this colour value: {colour}, at {x}, {y}. Colour found: {current}. Tolerance value: {tolVal})')
 
         time.sleep(0.1)
         return True
@@ -330,13 +338,13 @@ class AutomationSet:
             for itemList in self.outlineOfFunctions:  # access the itemList in the itemList [['function name as string',parameters]]
                 if itemList[0] == 'pyAutogui.moveMouse':  # if needing moveMouse, input moveMouse function with parameters
                     self.actualFunctions.append([self.pyAutogui.moveMouse, itemList[1], itemList[2], itemList[3]])
-                if itemList[0] == 'checkForElement.confirmColour':  # if needing a colour check (element check), input colour check function with parameters
+                elif itemList[0] == 'checkForElement.confirmColour':  # if needing a colour check (element check), input colour check function with parameters
                     self.actualFunctions.append([self.checkForElement.confirmColour, itemList[1]])
-                if itemList[0] == 'pyAutogui.type':  # if needing to type characters  input type function
+                elif itemList[0] == 'pyAutogui.type':  # if needing to type characters  input type function
                     self.actualFunctions.append([self.pyAutogui.type, itemList[1], itemList[2]])
-                if itemList[0] == 'pyAutogui.pressKeys':  # if needing to press a key combination (hotkeys)
+                elif itemList[0] == 'pyAutogui.pressKeys':  # if needing to press a key combination (hotkeys)
                     self.actualFunctions.append([self.pyAutogui.pressKeys, (itemList[1][0], itemList[1][1])])  # arguments come inside a tuple (holdKey,tapKey)
-                if itemList[0] == 'pyAutogui.openFile':  # if needing to open a file
+                elif itemList[0] == 'pyAutogui.openFile':  # if needing to open a file
                     self.actualFunctions.append([self.pyAutogui.openFile, (itemList[1][0], itemList[1][1])])  # arguments are filepath and filename
     def runAutomation(self):
         '''
@@ -350,17 +358,18 @@ class AutomationSet:
 
         # Run the list of function calls with arguments
         print('Running automation\n')
-        self.logger.log(self.getName())
-        for itemList in self.actualFunctions:  # access the list in the list
+        self.logger.log("#### Initiating Automation for " + self.getName() + " ####") # Log the name of the automation before all of the actual functions
+
+        for itemList in self.actualFunctions:  # access the list in the listel
             if itemList[0] == self.pyAutogui.moveMouse:
                 itemList[0](itemList[1][0], itemList[1][1], itemList[2],itemList[3])  # access each item in the internal list and input arguments
-            if itemList[0] == self.checkForElement.confirmColour:
+            elif itemList[0] == self.checkForElement.confirmColour:
                 itemList[0](itemList[1][0][0], itemList[1][0][1], (itemList[1][1]))  # [function,((x,y),(r,g,b))]
-            if itemList[0] == self.pyAutogui.type:
+            elif itemList[0] == self.pyAutogui.type:
                 itemList[0](itemList[1], itemList[2])  # [function,((x,y),(r,g,b))]
-            if itemList[0] == self.pyAutogui.pressKeys:
+            elif itemList[0] == self.pyAutogui.pressKeys:
                 itemList[0](itemList[1][0], itemList[1][1])  # [function,(holdKey,tapKey)]
-            if itemList[0] == self.pyAutogui.openFile:
+            elif itemList[0] == self.pyAutogui.openFile:
                 itemList[0](itemList[1][0], itemList[1][1])  # [function,(fileName,filePath)]
 
 
