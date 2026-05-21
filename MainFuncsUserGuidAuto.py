@@ -358,7 +358,10 @@ class AutomationSet:
 
         # Run the list of function calls with arguments
         print('Running automation\n')
+
+        self.logger.log("===========================================================")
         self.logger.log("#### Initiating Automation for " + self.getName() + " ####") # Log the name of the automation before all of the actual functions
+
 
         for itemList in self.actualFunctions:  # access the list in the listel
             if itemList[0] == self.pyAutogui.moveMouse:
