@@ -4,6 +4,7 @@
 # colour picker crtl shift a, Type in colour
 
 from tkinter import *
+from tkinter import simpledialog
 from ctypes import windll  # used for fixing blurry fonts on win 10 and 11 (also  windll.shcore.SetProcessDpiAwareness(1))
 # from MainFuncsTestingGround import *
 from MainFuncsUserGuidAuto import *
@@ -16,7 +17,7 @@ class MainWindow:
 
         # Master Window
         self.master = master
-        self.master.title('One Click 2.0')
+        self.master.title('One Click 2.5')
         self.master.geometry("+1400+200")  # position of the window in the screen (200x300) ("-3300+500")
         self.master.geometry("500x400")  # set initial size of the root window (master) (1500x700);
         # if not set, the frames will fill the master window
@@ -45,7 +46,7 @@ class MainWindow:
         self.frame2.grid_propagate(0)
 
         # Default Buttons
-        self.createButton = Button(self.frame1, text="Create", width=12, bg="#859AFF", command=lambda: createAutomation(self.automationObjList,mainWin))  # Button for creating a new automation
+        self.createButton = Button(self.frame1, text="Create", width=12, bg="#859AFF", command=lambda: self.createAutomationInterface(self.automationObjList))  # Button for creating a new automation
         self.createButton.pack()
 
         # this is used to get the exact default button colour regardless of platform progam is run on, hence this button is not packed to screen
@@ -69,6 +70,46 @@ class MainWindow:
 
 
         windll.shcore.SetProcessDpiAwareness(1)  # used for fixing blurry fonts on win 10 and 11
+
+    def createAutomationInterface(self, automationObjList):
+
+        # buttons from a previous creation of an automation are still up, clear them first so as not to have duplicates
+        if self.frame2.winfo_children():
+
+            for widget in self.frame2.winfo_children():
+                widget.destroy()
+
+        # instantiate new AutomationSet object first
+        automationObjList.append(AutomationSet(logger))
+
+        # Prompt for name of automation before showing the buttons on the screen so that first we get the name, then following that, the actions
+        name = simpledialog.askstring("Automation Name", "Give a short one word name to your automation:")
+        automationObjList[-1].setName(name)
+
+        Button(self.frame2, text='Add Colour Check + Click', width=30,
+                  command=lambda: addColourCheckClick(automationObjList)).pack(pady=3)
+
+        Button(self.frame2, text='Add Simple Click', width=30,
+                  command=lambda: addSimpleClick(automationObjList)).pack(pady=3)
+
+        Button(self.frame2, text='Type Text', width=30,
+                  command=lambda: addTyping(automationObjList,simpledialog.askstring("Enter Text", "Enter any text desired:"), simpledialog.askstring("Tap Enter", "type 'y' to press enter:"))).pack(pady=3)
+
+        # This button calls the addKeyCombo funcs imported from mainFuncs which needs two args from the user
+        Button(self.frame2, text='Add Key Combination', width=30, command=lambda: addKeyCombination(automationObjList, simpledialog.askstring("Hold Key", "type abbreviation for hold key:"), simpledialog.askstring("Tap Key", "type second key:"))).pack(pady=3)
+
+        Button(self.frame2, text='Open File', width=30,
+                  command=lambda: openFile(automationObjList)).pack(pady=3)
+
+        Button(self.frame2, text='Finish And Save', width=30,
+                  command=lambda: finishAutomation(automationObjList, self)).pack(pady=3)
+
+
+
+        if name is None:
+            return
+
+
 
     def refreshFrame1(self):
 
@@ -162,7 +203,7 @@ def main():
         with open('Automations', 'rb') as f:  # use wb mode so if file does not exist, it will create one; use rb if only reading
             automationObjList = pickle.load(f)
             f.close()
-            # print('The speedometer list has been loaded from the config file', *speedometerList)
+
     else:  # If no file exists intialize list as empty
         automationObjList = []
 
