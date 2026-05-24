@@ -18,8 +18,8 @@ class MainWindow:
         # Master Window
         self.master = master
         self.master.title('One Click 2.5')
-        self.master.geometry("+1400+200")  # position of the window in the screen (200x300) ("-3300+500")
-        self.master.geometry("500x400")  # set initial size of the root window (master) (1500x700);
+        self.master.geometry("+1600+200")  # position of the window in the screen (200x300) ("-3300+500")
+        self.master.geometry("250x400")  # set initial size of the root window (master) (1500x700);
         # if not set, the frames will fill the master window
         # self.master.attributes('-fullscreen', True)
         screenWidth = self.master.winfo_screenwidth()
@@ -95,6 +95,9 @@ class MainWindow:
         name = simpledialog.askstring("Automation Name", "Give a short one word name to your automation:")
         automationObjList[-1].setName(name)
 
+        self.master.geometry("+1400+200")
+        self.master.geometry("500x400") # resize window larger to make room for extra buttons
+
         Button(self.frame2, text='Add Colour Check + Click', width=30,
                   command=lambda: addColourCheckClick(automationObjList)).pack(pady=3)
 
@@ -110,14 +113,25 @@ class MainWindow:
         Button(self.frame2, text='Open File', width=30,
                   command=lambda: openFile(automationObjList)).pack(pady=3)
 
-        Button(self.frame2, text='Finish And Save', width=30,
-                  command=lambda: finishAutomation(automationObjList, self)).pack(pady=3)
-
+        Button(self.frame2, text='Finish And Save', width=30,command=lambda: self.finishAutomationInterface(automationObjList)).pack(pady=3)
 
 
         if name is None:
             return
 
+    def finishAutomationInterface(self, automationObjList):
+
+        'This function bundles two functions into one. It finishes the automation by calling finish, and then clears the frame. Other handy things can allso be added'
+
+        finishAutomation(automationObjList, self)
+
+        if self.frame2.winfo_children():
+
+            for widget in self.frame2.winfo_children():
+                widget.destroy()
+
+        self.master.geometry("+1600+200")
+        self.master.geometry("250x400")
 
 
     def refreshFrame1(self):
