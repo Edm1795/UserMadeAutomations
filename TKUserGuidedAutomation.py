@@ -31,16 +31,19 @@ class MainWindow:
         self.frame0 = Frame(self.master, bd=5, padx=5, bg='#606266')  # Top long row
         self.frame1 = Frame(self.master, bd=5, padx=5, bg='#2a2b2b')  # Side Column
         self.frame2 = Frame(self.master, bd=5, padx=5, bg='#FFC672')  # Main frame
+        #self.frame3 = Frame(self.master, bd=5, padx=5, bg='#FFC692')  # Bottom frame
 
         # Place frames
         self.frame0.grid(row=0, column=0, columnspan=2, sticky="nsew")
         self.frame1.grid(row=1, column=0, columnspan=1, sticky="nsew")
         self.frame2.grid(row=1, column=1, columnspan=1, sticky="nsew")
+        #self.frame3.grid(row=2, column=0, columnspan=2, sticky="nsew")
 
         # configure weighting of frames
         self.master.grid_columnconfigure(0, weight=1)  # First int refers to column numberAllows frames to expand as master window expands; weight tells how much of the columns it takes
         self.master.grid_columnconfigure(1, weight=7)  # weight gives 3 times as much column as the other columns
         self.master.grid_rowconfigure(1, weight=1)  # rowconfigure states: first row takes 1 parts of space
+        #self.master.grid_rowconfigure(2, minsize=30)
 
         self.frame1.grid_propagate(0)  # When adding widgets maintain weighting of frames
         self.frame2.grid_propagate(0)
@@ -52,6 +55,9 @@ class MainWindow:
         # this is used to get the exact default button colour regardless of platform progam is run on, hence this button is not packed to screen
         self.colourCheckButton=Button(self.frame1, text="", width=12)
         self.defaultButtonColour=self.colourCheckButton['bg']
+
+
+
 
 
 
@@ -111,7 +117,7 @@ class MainWindow:
         Button(self.frame2, text='Add Key Combination', width=30, command=lambda: addKeyCombination(automationObjList, simpledialog.askstring("Hold Key", "type abbreviation for hold key:"), simpledialog.askstring("Tap Key", "type second key:"))).pack(pady=3)
 
         Button(self.frame2, text='Open File', width=30,
-                  command=lambda: openFile(automationObjList)).pack(pady=3)
+                  command=lambda: addOpenFile(automationObjList,simpledialog.askstring("File Path Only", "Copy and paste file path here"), simpledialog.askstring("File Name and Extension", "Type in exact file name with extension"))).pack(pady=3)
 
         Button(self.frame2, text='Finish And Save', width=30,command=lambda: self.finishAutomationInterface(automationObjList)).pack(pady=3)
 
