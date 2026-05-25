@@ -116,6 +116,8 @@ class PYautogui:
         filePathandName=filePath+fileName
         os.startfile(filePathandName)
 
+        self.logger.log(f'File Opened:      {fileName}, Path:  {filePath}')
+
 class CheckForElem:
 
     '''
@@ -534,9 +536,7 @@ def addKeyCombination(automationObjList, holdKey, tapKey):
 
 def addOpenFile(automationObjList, filePath, fileName):
 
-    automationObjList[-1].writeOutlineOfFunctions(
-    ['pyAutogui.openFile', (filePath, fileName)]
-    )
+    automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.openFile', (filePath, fileName)])
 
 
 def finishAutomation(automationObjList, mainWin):
