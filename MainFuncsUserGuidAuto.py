@@ -283,6 +283,7 @@ class AutomationSet:
         Single word name given to the automation which becomes the title of the button on screen and given by the user.
         :param name: str: one word which can fit inside the button
         '''
+
         self.name=name
 
     def setBriefDescription(self,description):
@@ -468,7 +469,7 @@ class AutomationSet:
 def addColourCheckClick(automationObjList):
 
     checkForElement = CheckForElem(logger)  # Instantiate a Check for Element Class (contains methods needed for checking colours)
-    automationObjList.append(AutomationSet(logger))  # Instantiate an AutomationSet Object
+    #automationObjList.append(AutomationSet(logger))  # Instantiate an AutomationSet Object
 
     print(
     'Use Main Monitor Only: Place mouse over the top '
@@ -560,7 +561,7 @@ def deleteItem(attribute,deletedAutomations,automationObjList,mainWin):
     print('attribute is:',attribute)
     c=0
     for object in automationObjList:
-        if object.getName()==attribute:
+        if object.getName()==attribute or object.getName()==None: # if automation was not given a name, its name will be None
             deletedAutomations=automationObjList.pop(c)
             print("item deleted")
             saveFile(automationObjList, "Automations")
