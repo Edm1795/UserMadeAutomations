@@ -166,22 +166,25 @@ class CheckForElem:
         :return: True once the colour is detected
         '''
 
-        tolVal=100 # value of colour tolerance for each base colour r,g,b (Eg: If red should be 100, but in fact is 200, still confirms as true)
+        tolVal=60 # value of colour tolerance for each base colour r,g,b (Eg: If red should be 100, but in fact is 200, still confirms as true)
 
         loop = True
 
         while loop:
 
-            current = ag.pixel(x, y)  # current colour at position to test for
+            current = ag.pixel(x, y)
 
-            # use eyedroper in Firefox browser options to get colour then convert to rgb
-            if ag.pixelMatchesColor(x, y, colour,tolerance=tolVal) == False:  # colour must be sent as tuple (r,g,b); allow for tolerance of 20 on all colour bases r,g, and b.
-                time.sleep(0.01) # add a slight delay so as not to run the colour check too many times; This fixes its tendency to stall the system
-                continue
-            else:
+            match = all(abs(current[i] - colour[i]) <= tolVal for i in range(3)) # check that all 3 r.g.b match the needed colour within a range of tolerance
+
+            if match: #if match (True) stop loop
                 loop = False
+            else: # if match (False) delay then continue loop
+                time.sleep(0.01)
 
-        print('Colour confirmed ')
+        print("Colour confirmed")
+        print("Target:", colour)
+        print("Found:", current)
+
 
         self.logger.log(f'Colour confirmed. (Checking for this colour value: {colour}, at {x}, {y}. Colour found: {current}. Tolerance value: {tolVal})')
 
@@ -471,10 +474,7 @@ def addColourCheckClick(automationObjList):
     checkForElement = CheckForElem(logger)  # Instantiate a Check for Element Class (contains methods needed for checking colours)
     #automationObjList.append(AutomationSet(logger))  # Instantiate an AutomationSet Object
 
-    print(
-    'Use Main Monitor Only: Place mouse over the top '
-    'of a coloured element -- 5 seconds\n'
-    )
+    print('Use Main Monitor Only: Place mouse over the top of a coloured element -- 5 seconds\n')
 
     time.sleep(5)
 
