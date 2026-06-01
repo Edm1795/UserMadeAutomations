@@ -9,17 +9,47 @@ from ctypes import windll  # used for fixing blurry fonts on win 10 and 11 (also
 # from MainFuncsTestingGround import *
 from MainFuncsUserGuidAuto import *
 from os.path import exists
+import sys
+import yaml
 
+class PrintLogger:
+    def __init__(self, textbox):
+        self.textbox = textbox
+
+    def write(self, text):
+
+        # remove line breaks
+        text = text.replace('\n', '') # strip new lines from the print() function calls so that they go onto one line in interface (print automatically adds a /n)
+
+        self.textbox.insert("end", text)
+
+        # keep only one line
+        self.textbox.delete("1.80", "end")
+
+        self.textbox.update_idletasks()
+
+    def flush(self):
+        pass
 
 class MainWindow:
 
-    def __init__(self, master, automationObjList,deletedAutomations):
+    def __init__(self, master, automationObjList,deletedAutomations,config):
 
         # Master Window
         self.master = master
-        self.master.title('One Click 2.5')
-        self.master.geometry("+1600+200")  # position of the window in the screen (200x300) ("-3300+500")
-        self.master.geometry("250x400")  # set initial size of the root window (master) (1500x700);
+        self.master.title('One Click 2.6')
+
+        # Initial window size (compact view, not showing extra buttons)
+        self.initWinPosHorVert = config["initWinPosHorVert"]
+        self.initWinSizeHorVert = config["initWinSizeHorVert"]
+
+        # large window size for making room for extra buttons
+        self.largeWinPosHorVert = config["largeWinPosHorVert"]
+        self.largeWinSizeHorVert = config["largeWinSizeHorVert"]
+
+        self.master.geometry(self.initWinPosHorVert)  # intial position of the window in the screen (200x300) ("-3300+500")
+        self.master.geometry(self.initWinSizeHorVert)  # initial size of the root window (master) (1500x700);
+
         # if not set, the frames will fill the master window
         # self.master.attributes('-fullscreen', True)
         screenWidth = self.master.winfo_screenwidth()
@@ -31,19 +61,19 @@ class MainWindow:
         self.frame0 = Frame(self.master, bd=5, padx=5, bg='#606266')  # Top long row
         self.frame1 = Frame(self.master, bd=5, padx=5, bg='#2a2b2b')  # Side Column
         self.frame2 = Frame(self.master, bd=5, padx=5, bg='#FFC672')  # Main frame
-        #self.frame3 = Frame(self.master, bd=5, padx=5, bg='#FFC692')  # Bottom frame
+        self.frame3 = Frame(self.master, bd=5, padx=5, bg='#FFC692')  # Bottom frame
 
         # Place frames
         self.frame0.grid(row=0, column=0, columnspan=2, sticky="nsew")
         self.frame1.grid(row=1, column=0, columnspan=1, sticky="nsew")
         self.frame2.grid(row=1, column=1, columnspan=1, sticky="nsew")
-        #self.frame3.grid(row=2, column=0, columnspan=2, sticky="nsew")
+        self.frame3.grid(row=2, column=0, columnspan=2, sticky="nsew")
 
         # configure weighting of frames
         self.master.grid_columnconfigure(0, weight=1)  # First int refers to column numberAllows frames to expand as master window expands; weight tells how much of the columns it takes
         self.master.grid_columnconfigure(1, weight=7)  # weight gives 3 times as much column as the other columns
         self.master.grid_rowconfigure(1, weight=1)  # rowconfigure states: first row takes 1 parts of space
-        #self.master.grid_rowconfigure(2, minsize=30)
+        self.master.grid_rowconfigure(2, minsize=30)
 
         self.frame1.grid_propagate(0)  # When adding widgets maintain weighting of frames
         self.frame2.grid_propagate(0)
@@ -56,10 +86,15 @@ class MainWindow:
         self.colourCheckButton=Button(self.frame1, text="", width=12)
         self.defaultButtonColour=self.colourCheckButton['bg']
 
+        self.textbox = Text(self.frame3, height=1, width=80)
+        self.textbox.pack(fill='both', expand=True)
 
+        self.textbox.insert("end", "Hello textbox")
 
-
-
+        # redirect print statements
+        print('before')
+        sys.stdout = PrintLogger(self.textbox)
+        print('after test')
 
         # Button Lists
         self.automationObjList = automationObjList  # Load file storing each Automation Object
@@ -72,8 +107,6 @@ class MainWindow:
         self.loadButtons()  # Loads the Button classes into the buttonList above from the description list
 
         frameWidth = 10  # Units are in characters not pixels
-
-
 
         windll.shcore.SetProcessDpiAwareness(1)  # used for fixing blurry fonts on win 10 and 11
 
@@ -136,8 +169,8 @@ class MainWindow:
             for widget in self.frame2.winfo_children():
                 widget.destroy()
 
-        self.master.geometry("+1600+200")
-        self.master.geometry("250x400")
+        self.master.geometry(self.initWinPosHorVert)
+        self.master.geometry(self.initWinSizeHorVert)
 
 
     def refreshFrame1(self):
@@ -216,14 +249,6 @@ class MainWindow:
 
 
 
-
-
-
-    def print1(self):
-        print('works')
-        self.entry = Entry(self.frame2, width=10)
-        self.entry.pack()
-
 def main():
     global mainWin  # Global mainWin so as to access the mainWin from functions which may need to call method
     root = Tk()
@@ -236,7 +261,23 @@ def main():
     else:  # If no file exists intialize list as empty
         automationObjList = []
 
-    mainWin = MainWindow(root, automationObjList,deletedAutomations)  # Instantiate TK Window with access to automation object list
+    # Load Configurations from config YAML file
+    if exists('AutoConfig.yaml'):  # Returns True if file exists; if true open file and load into variable
+        with open('AutoConfig.yaml', 'r') as f:
+            config = yaml.safe_load(f) # loads all settings into a python dictionary. (wxample in a class, self.name = config["name"])
+            f.close()
+
+    else:  # If no file exists initialize values to defaults
+        print("### the config file was not found, default values have been loaded instead ###")
+
+        winPosHorVer = "+2+118"
+        winSizeHorVert = "1800x45"
+        mainFrameCol = '#FFC642'
+
+        # Post message to screen if configuration file could not be found
+        message('Message', 'The configuration file could not be found, and so the program is loaded with default settings.')
+
+    mainWin = MainWindow(root, automationObjList,deletedAutomations, config)  # Instantiate TK Window with access to automation object list
 
     root.mainloop()
 
