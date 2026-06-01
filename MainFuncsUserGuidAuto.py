@@ -474,7 +474,7 @@ def addColourCheckClick(automationObjList):
     checkForElement = CheckForElem(logger)  # Instantiate a Check for Element Class (contains methods needed for checking colours)
     #automationObjList.append(AutomationSet(logger))  # Instantiate an AutomationSet Object
 
-    print('Use Main Monitor Only: Place mouse over the top of a coloured element -- 5 seconds\n')
+    print('Place mouse over top of coloured element - 5 seconds')
 
     time.sleep(5)
 
@@ -482,9 +482,7 @@ def addColourCheckClick(automationObjList):
 
     print('## Colour value acquired ##')
 
-    automationObjList[-1].writeOutlineOfFunctions(
-    ['checkForElement.confirmColour', posAndCol]
-    )
+    automationObjList[-1].writeOutlineOfFunctions(['checkForElement.confirmColour', posAndCol])
 
     print('Keep mouse in position -- 3 seconds\n')
 
@@ -492,15 +490,13 @@ def addColourCheckClick(automationObjList):
 
     mousePos = ag.position()
 
-    automationObjList[-1].writeOutlineOfFunctions(
-    ['pyAutogui.moveMouse', mousePos, 0.5, 'y']
-    )
+    automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.moveMouse', mousePos, 0.5, 'y'])
 
-    print('Click-position information complete.\n')
+    print('Click-position information complete.')
 
 def addSimpleClick(automationObjList):
 
-    print('Move mouse into clicking position -- 4 seconds\n')
+    print('Move mouse to click position - 4 seconds')
 
     time.sleep(4)
 
@@ -510,29 +506,23 @@ def addSimpleClick(automationObjList):
     ['pyAutogui.moveMouse', mousePos, 0.5, 'y']
     )
 
-    print('Mouse click position acquired.\n')
+    print('Mouse click position acquired.')
 
 
 def addTyping(automationObjList, rawText, enter):
 
     if enter == 'y':
 
-        automationObjList[-1].writeOutlineOfFunctions(
-        ['pyAutogui.type', rawText, 'y']
-        )
+        automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.type', rawText, 'y'])
 
     else:
 
-        automationObjList[-1].writeOutlineOfFunctions(
-        ['pyAutogui.type', rawText, 'n']
-        )
+        automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.type', rawText, 'n'])
 
 
 def addKeyCombination(automationObjList, holdKey, tapKey):
 
-    automationObjList[-1].writeOutlineOfFunctions(
-    ['pyAutogui.pressKeys', (holdKey, tapKey)]
-    )
+    automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.pressKeys', (holdKey, tapKey)])
 
 
 def addOpenFile(automationObjList, filePath, fileName):
@@ -542,7 +532,7 @@ def addOpenFile(automationObjList, filePath, fileName):
 
 def finishAutomation(automationObjList, mainWin):
 
-    print('**** Automation file saved. All is Complete ****\n')
+    print('**** Automation file saved. All is Complete *')
 
     saveFile(automationObjList, "Automations")
 
