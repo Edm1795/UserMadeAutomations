@@ -21,10 +21,17 @@ class PrintLogger:
         # remove line breaks
         text = text.replace('\n', '') # strip new lines from the print() function calls so that they go onto one line in interface (print automatically adds a /n)
 
+        # ignore blank writes
+        if text == '':
+            return
+
+        # clear old contents
+        self.textbox.delete("1.0", "end")
+        # insert latest message
         self.textbox.insert("end", text)
 
         # keep only one line
-        self.textbox.delete("1.80", "end")
+        #self.textbox.delete("1.80", "end")
 
         self.textbox.update_idletasks()
 
@@ -89,16 +96,16 @@ class MainWindow:
         self.textbox = Text(self.frame3, height=1, width=80)
         self.textbox.pack(fill='both', expand=True)
 
-        self.textbox.insert("end", "Hello textbox")
+        #self.textbox.insert("end", "Hello textbox")
 
         # redirect print statements
-        print('before')
+
         sys.stdout = PrintLogger(self.textbox)
-        print('after test')
+
 
         # Button Lists
         self.automationObjList = automationObjList  # Load file storing each Automation Object
-        self.buttonList = []  # Holds Button classes for each automation from the loaded Automations file
+        self.buttonList = []  # Holds Button classes for each automation from the loaded Automatins file
 
         # Deleted Automations (deleted by the use but saved here)
         self.deletedAutomations=deletedAutomations
