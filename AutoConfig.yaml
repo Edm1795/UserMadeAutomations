@@ -1,0 +1,19 @@
+
+
+
+initWinPosHorVert : +1600+200 # horizontal and vertical position of main window on the screen
+initWinSizeHorVert : 250x400 # default size of main window
+
+largeWinPosHorVert : 1400x200 # Large window position used for making room for extra buttons
+largeWinSizeHorVert : 500x400 # large window size for making room for extra buttons
+
+mainFrameCol : '#7E850C' # Colour of the main frame (large frame) of the window
+timeLineCol: "green" # Colour of timeline vertical running on screen of schedule
+timeLineWidth : '2' # width of timeline in pixels on screen
+pixelsPerMinute : 1.0 # number of pixels to move line per minute
+eightAMline : 700 # earliest starting point of line (point on the screen where 8 am occurs)
+
+breadth: 'f' # breadth of coverage for screenshots; 'f' = full week
+position: 'LA' # position, LA or p
+week: 'Oct_2' # Week of the month, eg: first week of Jan = Jan_1
+computer: 'h' # computer program is run on, h = home, w = work, this impacts where files will be saved after screen shots are taken
