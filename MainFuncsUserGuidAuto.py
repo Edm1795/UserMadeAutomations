@@ -76,6 +76,13 @@ class PYautogui:
 
         self.logger.log(f'Mouse dragged: {horiz}, {vert} ,{button}, time: {time}')
 
+    def backspace(self,numOfPresses):
+
+        ag.press('backspace',presses=int(numOfPresses))
+
+        self.logger.log(f'Key pressed:    backspace, pressed: {numOfPresses} times')
+
+
     def pressKeys(self, holdKey, secondKey):
 
         '''
@@ -352,6 +359,8 @@ class AutomationSet:
                     self.actualFunctions.append([self.pyAutogui.pressKeys, (itemList[1][0], itemList[1][1])])  # arguments come inside a tuple (holdKey,tapKey)
                 elif itemList[0] == 'pyAutogui.openFile':  # if needing to open a file
                     self.actualFunctions.append([self.pyAutogui.openFile, (itemList[1][0], itemList[1][1])])  # arguments are filepath and filename
+                elif itemList[0] == 'pyAutogui.backspace':  # if needing to open a file
+                    self.actualFunctions.append([self.pyAutogui.backspace, (itemList[1])])  # arguments are number of presses on backspace key
     def runAutomation(self):
         '''
         This method is called by the buttons on the interface and it runs the list of automation function calls from the actualFunctions list.
@@ -369,7 +378,7 @@ class AutomationSet:
         self.logger.log("#### Initiating Automation for " + self.getName() + " ####") # Log the name of the automation before all of the actual functions
 
 
-        for itemList in self.actualFunctions:  # access the list in the listel
+        for itemList in self.actualFunctions:  # access the list in the list
             if itemList[0] == self.pyAutogui.moveMouse:
                 itemList[0](itemList[1][0], itemList[1][1], itemList[2],itemList[3])  # access each item in the internal list and input arguments
             elif itemList[0] == self.checkForElement.confirmColour:
@@ -380,6 +389,8 @@ class AutomationSet:
                 itemList[0](itemList[1][0], itemList[1][1])  # [function,(holdKey,tapKey)]
             elif itemList[0] == self.pyAutogui.openFile:
                 itemList[0](itemList[1][0], itemList[1][1])  # [function,(fileName,filePath)]
+            elif itemList[0] == self.pyAutogui.backspace:  # [function,(numOfPresses)]
+                itemList[0](itemList[1])
 
 
 
@@ -502,9 +513,7 @@ def addSimpleClick(automationObjList):
 
     mousePos = ag.position()
 
-    automationObjList[-1].writeOutlineOfFunctions(
-    ['pyAutogui.moveMouse', mousePos, 0.5, 'y']
-    )
+    automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.moveMouse', mousePos, 0.5, 'y'])
 
     print('Mouse click position acquired.')
 
@@ -523,6 +532,11 @@ def addTyping(automationObjList, rawText, enter):
 def addKeyCombination(automationObjList, holdKey, tapKey):
 
     automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.pressKeys', (holdKey, tapKey)])
+
+def addBackspace(automationObjList,numOfPresses):
+
+
+    automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.backspace', numOfPresses])
 
 
 def addOpenFile(automationObjList, filePath, fileName):
@@ -553,7 +567,7 @@ def deleteItem(attribute,deletedAutomations,automationObjList,mainWin):
     for object in automationObjList:
         if object.getName()==attribute or object.getName()==None: # if automation was not given a name, its name will be None
             deletedAutomations=automationObjList.pop(c)
-            print("item deleted")
+            print("Button deleted")
             saveFile(automationObjList, "Automations")
             mainWin.clearButtons()
             mainWin.loadButtons()
