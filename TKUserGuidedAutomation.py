@@ -66,9 +66,9 @@ class MainWindow:
 
         # Instantiate frames
         self.frame0 = Frame(self.master, bd=5, padx=5, bg='#606266')  # Top long row
-        self.frame1 = Frame(self.master, bd=5, padx=5, bg='#2a2b2b')  # Side Column
-        self.frame2 = Frame(self.master, bd=5, padx=5, bg='#FFC672')  # Main frame
-        self.frame3 = Frame(self.master, bd=5, padx=5, bg='#FFC692')  # Bottom frame
+        self.frame1 = Frame(self.master, bd=5, padx=5, bg='#2a2b2b')  # Side Column for buttons to run automations
+        self.frame2 = Frame(self.master, bd=5, padx=5, bg='#FFC672')  # Main frame used for creating automations
+        self.frame3 = Frame(self.master, bd=5, padx=5, bg='#FFC692')  # Bottom frame for posting messages
 
         # Place frames
         self.frame0.grid(row=0, column=0, columnspan=2, sticky="nsew")
@@ -122,11 +122,10 @@ class MainWindow:
         '''
         This method loads the buttons needed for building a user generated automation. First it checks if the screen has any buttons
         remaining from a previous creation session and removes them, then it creates the new AutomationSet object, then prompts for the
-        name of the new Automation, then finally loads the buttons for the user to use.
+        name of the new Automation, then finally loads the buttons for the user to build each part of an automation.
         :param automationObjList:
         :return:
         '''
-
 
         # buttons from a previous creation of an automation are still up, clear them first so as not to have duplicates
         if self.frame2.winfo_children():
@@ -144,23 +143,20 @@ class MainWindow:
         self.master.geometry("+1400+200")
         self.master.geometry("500x400") # resize window larger to make room for extra buttons
 
-        Button(self.frame2, text='Add Colour Check + Click', width=30,
-                  command=lambda: addColourCheckClick(automationObjList)).pack(pady=3)
+        Button(self.frame2, text='Add Colour Check + Click', width=30, command=lambda: addColourCheckClick(automationObjList)).pack(pady=3)
 
-        Button(self.frame2, text='Add Simple Click', width=30,
-                  command=lambda: addSimpleClick(automationObjList)).pack(pady=3)
+        Button(self.frame2, text='Add Simple Click', width=30, command=lambda: addSimpleClick(automationObjList)).pack(pady=3)
 
-        Button(self.frame2, text='Type Text', width=30,
-                  command=lambda: addTyping(automationObjList,simpledialog.askstring("Enter Text", "Enter any text desired:"), simpledialog.askstring("Tap Enter", "type 'y' to press enter:"))).pack(pady=3)
+        Button(self.frame2, text='Type Text', width=30, command=lambda: addTyping(automationObjList,simpledialog.askstring("Enter Text", "Enter any text desired:"), simpledialog.askstring("Tap Enter", "type 'y' to press enter:"))).pack(pady=3)
 
         # This button calls the addKeyCombo funcs imported from mainFuncs which needs two args from the user
         Button(self.frame2, text='Add Key Combination', width=30, command=lambda: addKeyCombination(automationObjList, simpledialog.askstring("Hold Key", "type abbreviation for hold key:"), simpledialog.askstring("Tap Key", "type second key:"))).pack(pady=3)
 
-        Button(self.frame2, text='Open File', width=30,
-                  command=lambda: addOpenFile(automationObjList,simpledialog.askstring("File Path Only", "Copy and paste file path here"), simpledialog.askstring("File Name and Extension", "Type in exact file name with extension"))).pack(pady=3)
+        Button(self.frame2, text='Backspace', width=30, command=lambda: addBackspace(automationObjList,simpledialog.askstring("Press Backspace", "enter number of presses"))).pack(pady=3)
 
-        Button(self.frame2, text='Finish And Save', width=30,command=lambda: self.finishAutomationInterface(automationObjList)).pack(pady=3)
+        Button(self.frame2, text='Open File', width=30, command=lambda: addOpenFile(automationObjList,simpledialog.askstring("File Path Only", "Copy and paste file path here"), simpledialog.askstring("File Name and Extension", "Type in exact file name with extension"))).pack(pady=3)
 
+        Button(self.frame2, text='Finish And Save', bg="light green",width=30,command=lambda: self.finishAutomationInterface(automationObjList)).pack(pady=3)
 
         if name is None:
             return
@@ -176,6 +172,7 @@ class MainWindow:
             for widget in self.frame2.winfo_children():
                 widget.destroy()
 
+        # reset interface to its initial size and position
         self.master.geometry(self.initWinPosHorVert)
         self.master.geometry(self.initWinSizeHorVert)
 
