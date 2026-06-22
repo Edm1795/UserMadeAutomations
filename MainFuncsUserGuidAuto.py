@@ -11,7 +11,7 @@ import pickle
 import logging
 
 # List holding all individual automation objects; used by createAutomation function
-automationObjList=[]
+automationObjList=[] # List of the class AutomationSet
 deletedAutomations=[]
 
 
@@ -217,8 +217,8 @@ class CheckForElem:
         '''
         mousePos = ag.position() # get position of the mouse (x,y)
         print('Mouse position acquired.')
-        print('Move the mouse off of the element - 5 seconds')
-        time.sleep(5)
+        print('Move the mouse off of the element - 3 seconds')
+        time.sleep(3)
         print(mousePos,ag.pixel(mousePos[0],mousePos[1]))
         return (mousePos,ag.pixel(mousePos[0],mousePos[1])) # return the pixel value for the given mousePos ((x,y),(r,g,b))
 
@@ -273,7 +273,7 @@ class AutomationSet:
         # after restarting the program
         self.actualFunctions=[] # List of real functions in sequence built using the outlineOfFuncCalls directly above.
 
-        self.logger = Logger() # Instantiate the logger and send intot he PYautogui class
+        # self.logger = Logger() # Instantiate the logger and send into the PYautogui class
 
         self.pyAutogui=PYautogui(self.logger) # Instantiate the PYautogui class which contains all methods for automating
         self.checkForElement=CheckForElem(self.logger) # Instantiate CheckFor Element class
@@ -485,17 +485,17 @@ def addColourCheckClick(automationObjList):
     checkForElement = CheckForElem(logger)  # Instantiate a Check for Element Class (contains methods needed for checking colours)
     #automationObjList.append(AutomationSet(logger))  # Instantiate an AutomationSet Object
 
-    print('Place mouse over top of coloured element - 5 seconds')
+    print('Place mouse over top of coloured element - 4 seconds')
 
-    time.sleep(5)
+    time.sleep(4)
 
     posAndCol = checkForElement.getColourDelayed()
 
-    print('## Colour value acquired ##')
+    print('## Colour value acquired ##') #
 
     automationObjList[-1].writeOutlineOfFunctions(['checkForElement.confirmColour', posAndCol])
 
-    print('Keep mouse in position -- 3 seconds\n')
+    print('Move mouse to click position -- 3 seconds')
 
     time.sleep(3)
 
@@ -540,6 +540,19 @@ def addBackspace(automationObjList,numOfPresses):
 
 
 def addOpenFile(automationObjList, filePath, fileName):
+    
+    '''
+    Opens a file on the computer by its path and file name, includes a validation check whether or not the user
+    has included a backslash at the end of the path
+    :param automationObjList: 
+    :param filePath: given by the user prompt, file path only, not including filename
+    :param fileName: comeplete filename with dot extension 
+    '''
+    backslash = chr(92) # get string of backslash chr because backslash is also an escape character
+    if filePath[-1] != backslash: # if no backslash present:
+        filePath=filePath+backslash # add a backslash to the very end
+    else: # if backslash is present do not add anything
+        pass
 
     automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.openFile', (filePath, fileName)])
 
