@@ -2,7 +2,7 @@
 # This program is divided into a TK Window component and a Main Functions Component (Main Functions also in turn loads the pyautogui etc)
 
 # colour picker crtl shift a, Type in colour
-
+from tkinter import messagebox
 from tkinter import *
 from tkinter import simpledialog
 from ctypes import windll  # used for fixing blurry fonts on win 10 and 11 (also  windll.shcore.SetProcessDpiAwareness(1))
@@ -53,6 +53,8 @@ class MainWindow:
         # large window size for making room for extra buttons
         self.largeWinPosHorVert = config["largeWinPosHorVert"]
         self.largeWinSizeHorVert = config["largeWinSizeHorVert"]
+
+
 
         self.master.geometry(self.initWinPosHorVert)  # intial position of the window in the screen (200x300) ("-3300+500")
         self.master.geometry(self.initWinSizeHorVert)  # initial size of the root window (master) (1500x700);
@@ -147,7 +149,7 @@ class MainWindow:
 
         Button(self.frame2, text='Add Simple Click', width=30, command=lambda: addSimpleClick(automationObjList)).pack(pady=3)
 
-        Button(self.frame2, text='Type Text', width=30, command=lambda: addTyping(automationObjList,simpledialog.askstring("Enter Text", "Enter any text desired:"), simpledialog.askstring("Tap Enter", "type 'y' to press enter:"))).pack(pady=3)
+        Button(self.frame2, text='Type Text', width=30, command=lambda: addTyping(automationObjList,simpledialog.askstring("Enter Text", "Enter any text desired:"), simpledialog.askstring("Enter Key", "add 'y' to press enter; leave blank for none:"))).pack(pady=3)
 
         # This button calls the addKeyCombo funcs imported from mainFuncs which needs two args from the user
         Button(self.frame2, text='Add Key Combination', width=30, command=lambda: addKeyCombination(automationObjList, simpledialog.askstring("Hold Key", "type abbreviation for hold key:"), simpledialog.askstring("Tap Key", "type second key:"))).pack(pady=3)
@@ -274,12 +276,13 @@ def main():
     else:  # If no file exists initialize values to defaults
         print("### the config file was not found, default values have been loaded instead ###")
 
-        winPosHorVer = "+2+118"
-        winSizeHorVert = "1800x45"
-        mainFrameCol = '#FFC642'
+        # Config values inside dictionary with default values (loads after closing messagebox)
+        config = {"winPosHorVer":"+2+118","winSizeHorVert":"1800x45","mainFrameCol":"#FFC642","initWinPosHorVert":"+1600+200","initWinSizeHorVert" : "250x400","largeWinPosHorVert":"1400x200","largeWinSizeHorVert":"500x400","colTolerance":"20"}
+
+
 
         # Post message to screen if configuration file could not be found
-        message('Message', 'The configuration file could not be found, and so the program is loaded with default settings.')
+        messagebox.showinfo('Message', 'The configuration file could not be found, and so the program is loaded with default settings.')
 
     mainWin = MainWindow(root, automationObjList,deletedAutomations, config)  # Instantiate TK Window with access to automation object list
 
