@@ -9,10 +9,25 @@ import os
 import datetime
 import pickle
 import logging
+from os.path import exists
+import yaml
 
 # List holding all individual automation objects; used by createAutomation function
 automationObjList=[] # List of the class AutomationSet
 deletedAutomations=[]
+
+# Load Configurations from config YAML file same as used for interface but this module will only use relevant ones for this module
+if exists('AutoConfig.yaml'):  # Returns True if file exists; if true open file and load into variable
+    with open('AutoConfig.yaml', 'r') as f:
+        config = yaml.safe_load(f) # loads all settings into a python dictionary. (wxample in a class, self.name = config["name"])
+        f.close()
+
+else:  # If no file exists initialize values to defaults
+    print("### the config file was not found, default values have been loaded instead ###")
+
+    # Config values inside dictionary with default values (loads after closing messagebox)
+    config = {"winPosHorVer":"+2+118","winSizeHorVert":"1800x45","mainFrameCol":"#FFC642","initWinPosHorVert":"+1600+200","initWinSizeHorVert" : "250x400","largeWinPosHorVert":"1400x200","largeWinSizeHorVert":"500x400","colTolerance":"20"}
+
 
 
 
@@ -132,9 +147,10 @@ class CheckForElem:
     or a certain colour of pixel
     '''
 
-    def __init__(self,logger):
+    def __init__(self,logger,colTolerance):
 
         self.logger=logger
+        self.colTolerance=colTolerance #int value of the amount of colour tolerance desired when matching colours. Often set to about 20 for each rgb portion
 
     def confirmImage(self, image, sector, topLeftx=0, topLefty=0, bottomRightx=0, bottomRighty=0):
 
@@ -173,7 +189,9 @@ class CheckForElem:
         :return: True once the colour is detected
         '''
 
-        tolVal=60 # value of colour tolerance for each base colour r,g,b (Eg: If red should be 100, but in fact is 200, still confirms as true)
+        # This is now set at the instantiation of the CheckForElem from the config file class above and can be called anytime; self.colTolerance
+        # tolVal=60 # value of colour tolerance for each base colour r,g,b (Eg: If red should be 100, but in fact is 200, still confirms as true) \
+
 
         loop = True
 
@@ -181,7 +199,7 @@ class CheckForElem:
 
             current = ag.pixel(x, y)
 
-            match = all(abs(current[i] - colour[i]) <= tolVal for i in range(3)) # check that all 3 r.g.b match the needed colour within a range of tolerance
+            match = all(abs(current[i] - colour[i]) <= self.colTolerance for i in range(3)) # check that all 3 r.g.b match the needed colour within a range of tolerance
 
             if match: #if match (True) stop loop
                 loop = False
@@ -193,7 +211,7 @@ class CheckForElem:
         print("Found:", current)
 
 
-        self.logger.log(f'Colour confirmed. (Checking for this colour value: {colour}, at {x}, {y}. Colour found: {current}. Tolerance value: {tolVal})')
+        self.logger.log(f'Colour confirmed. (Checking for this colour value: {colour}, at {x}, {y}. Colour found: {current}. Tolerance value: {self.colTolerance})')
 
         time.sleep(0.1)
         return True
@@ -276,7 +294,7 @@ class AutomationSet:
         # self.logger = Logger() # Instantiate the logger and send into the PYautogui class
 
         self.pyAutogui=PYautogui(self.logger) # Instantiate the PYautogui class which contains all methods for automating
-        self.checkForElement=CheckForElem(self.logger) # Instantiate CheckFor Element class
+        self.checkForElement=CheckForElem(self.logger,config["colTolerance"]) # Instantiate CheckFor Element class; access the config dict to get coltolerance value
 
 
         # This call actually needs to be later in the process. It is moved to inside the runAutomation() method
@@ -482,7 +500,7 @@ class AutomationSet:
 
 def addColourCheckClick(automationObjList):
 
-    checkForElement = CheckForElem(logger)  # Instantiate a Check for Element Class (contains methods needed for checking colours)
+    checkForElement = CheckForElem(logger,config["colTolerance"])  # Instantiate a Check for Element Class (contains methods needed for checking colours)
     #automationObjList.append(AutomationSet(logger))  # Instantiate an AutomationSet Object
 
     print('Place mouse over top of coloured element - 4 seconds')
@@ -540,16 +558,16 @@ def addBackspace(automationObjList,numOfPresses):
 
 
 def addOpenFile(automationObjList, filePath, fileName):
-    
+
     '''
     Opens a file on the computer by its path and file name, includes a validation check whether or not the user
     has included a backslash at the end of the path
-    :param automationObjList: 
+    :param automationObjList:
     :param filePath: given by the user prompt, file path only, not including filename
-    :param fileName: comeplete filename with dot extension 
+    :param fileName: comeplete filename with dot extension
     '''
-    backslash = chr(92) # get string of backslash chr because backslash is also an escape character
-    if filePath[-1] != backslash: # if no backslash present:
+    backslash = chr(92) # get a clean string of backslash chr because backslash is also an escape character
+    if filePath[-1] != backslash: # if no backslash present in last position:
         filePath=filePath+backslash # add a backslash to the very end
     else: # if backslash is present do not add anything
         pass
@@ -604,6 +622,9 @@ def setButtonColour(attribute,automationObjList,mainWin):
             saveFile(automationObjList, "Automations")
             mainWin.clearButtons()
             mainWin.loadButtons()
+
+
+
 
 
 # def loadFile(filename): # No longer used here. This was moved to the TK Main function to load all neccessary data before starting the program
