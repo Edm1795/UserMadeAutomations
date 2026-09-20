@@ -1,0 +1,14 @@
+install Pyinstaller:
+
+Open the cmd window Type: pip install pyinstaller
+
+in the cmd windowd Go to the folder containing your Python code
+
+Type: pyinstaller --onefile nameOfFile.py
+Your executable file will go to a "dist" folder in the same directory as your python code
+
+When you run the program, best to run by the cmd window with a command call so as to see error messages.
+
+Add icon images to the folder holding the .exe. The .exe will need to access the image.
+
+to stop the terminal window from opening: python -m PyInstaller --onefile --windowed TKUserGuidedAutomation.py note, it automatically will process all needed dependency files imported
