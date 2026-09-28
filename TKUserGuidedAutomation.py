@@ -1,295 +1,658 @@
-# Automation Program
-# This program is divided into a TK Window component and a Main Functions Component (Main Functions also in turn loads the pyautogui etc)
+### Note: import pillow version 10.2.0 on the pycharm editor rather than the latest version, otherwise there is no compatibility. Pillow is used by pyautogui
 
-# colour picker crtl shift a, Type in colour
-from tkinter import messagebox
-from tkinter import *
-from tkinter import simpledialog
-from ctypes import windll  # used for fixing blurry fonts on win 10 and 11 (also  windll.shcore.SetProcessDpiAwareness(1))
-# from MainFuncsTestingGround import *
-from MainFuncsUserGuidAuto import *
+# The class holding the actual automation information for a single unified set of automations. The name of the automation, the description of each step
+# and the ability to create the functions
+
+import pyautogui as ag
+import time
+import os
+import datetime
+import pickle
+import logging
 from os.path import exists
-import sys
 import yaml
+import webcolors
+
+# List holding all individual automation objects; used by createAutomation function
+automationObjList=[] # List of the class AutomationSet
+deletedAutomations=[]
+
+# Load Configurations from config YAML file same as used for interface but this module will only use relevant ones for this module
+if exists('AutoConfig.yaml'):  # Returns True if file exists; if true open file and load into variable
+    with open('AutoConfig.yaml', 'r') as f:
+        config = yaml.safe_load(f) # loads all settings into a python dictionary. (wxample in a class, self.name = config["name"])
+        f.close()
+
+else:  # If no file exists initialize values to defaults
+    print("### the config file was not found, default values have been loaded instead ###")
+
+    # Config values inside dictionary with default values (loads after closing messagebox)
+    config = {"winPosHorVer":"+2+118","winSizeHorVert":"1800x45","mainFrameCol":"#FFC642","initWinPosHorVert":"+1600+200","initWinSizeHorVert" : "250x400","largeWinPosHorVert":"1400x200","largeWinSizeHorVert":"500x400","colTolerance":"20"}
 
 
-class PrintLogger:
-    def __init__(self, textbox):
-        self.textbox = textbox
 
-    def write(self, text):
 
-        # remove line breaks
-        text = text.replace('\n', '') # strip new lines from the print() function calls so that they go onto one line in interface (print automatically adds a /n)
+class Logger:
 
-        # ignore blank writes
-        if text == '':
+    '''
+    A class for logging all actions taken by the PYautogui and CheckForElem class
+    '''
+
+    def __init__(self):
+
+        logging.basicConfig(filename='AutomationLog.txt',level=logging.INFO,format='%(asctime)s - %(message)s')
+
+    def log(self, message):
+
+        logging.info(message)
+
+logger=Logger() # instantiate logger globally after defining the class, then use this object inside any class needed
+
+class PYautogui:
+
+    '''
+    Class of PY Autogui functions
+    '''
+
+    def __init__(self,logger):
+
+        self.logger=logger
+
+
+    def moveMouse(self, horiz, vert, time, click):
+        '''
+        Inputs: int: horizontal and vertical position where the mouse must end up
+        Time: int: mount of time to take to get pointer to its position
+        click: a str value of 'y' if a click is desired at final position
+        '''
+        ag.moveTo(horiz, vert, duration=time)
+
+        if click == 'y':
+            ag.click()
+        else:
+            pass
+
+        self.logger.log(f'Moving mouse to: {horiz}, {vert} time: {time}')
+
+    def click(self):
+        '''
+        Clicks the mouse
+        '''
+        ag.click()
+
+        self.logger.log(f'Mouse clicked')
+
+    def drag(self, horiz, vert, duration, button):
+
+        if button == 'l':
+            button = 'left'
+        if button == 'r':
+            button = 'right'
+        ag.dragTo(horiz, vert, button=button, duration=duration)
+
+        self.logger.log(f'Mouse dragged: {horiz}, {vert} ,{button}, time: {time}')
+
+    def backspace(self,numOfPresses):
+
+        ag.press('backspace',presses=int(numOfPresses))
+
+        self.logger.log(f'Key pressed:    backspace, pressed: {numOfPresses} times')
+
+
+    def pressKeys(self, holdKey, secondKey):
+
+        '''
+        Double key press function: eg, ctrl + a
+        Inputs: holdKey: str key to hold down, eg: ctrl or shift
+        secondKey:  str second key to press eg, a
+        '''
+        ag.keyDown(holdKey)  # hold down the shift key
+        ag.press(secondKey)  # press the left arrow key
+        ag.keyUp(holdKey)
+
+        self.logger.log(f'Keys pressed:    {holdKey}, {secondKey}')
+
+    def type(self, letters, enter='n'):
+        '''
+        Types keyboard input to the cursor.
+        Inputs: letters: a sequence of strings to be typed
+        Enter: a str 'y' or 'n', if you want to press the enter key after inputing letters1
+        '''
+        ag.write(letters)
+
+        if enter == 'y':
+            time.sleep(0.5)  # used to add gap between text input and pressing enter
+            ag.press('enter')
+        if enter =='n':
             return
 
-        # clear old contents
-        self.textbox.delete("1.0", "end")
-        # insert latest message
-        self.textbox.insert("end", text)
+        self.logger.log(f'text typed:      {letters}, enter pressed: {enter}')
 
-        # keep only one line
-        #self.textbox.delete("1.80", "end")
+    def openFile(self,filePath,fileName):
+        '''
+        This uses the os module to open files. From the prompts to the user, this gets the file path and file name
+        which are then used by os to open the file
+        :param filePath: str of file path eg: C:/Documents
+        :param fileName: str of file name and extension eg: dates.doc, list.pdf
+        :return: none
+        '''
+        filePathandName=filePath+fileName
+        os.startfile(filePathandName)
 
-        self.textbox.update_idletasks()
+        self.logger.log(f'File Opened:      {fileName}, Path:  {filePath}')
 
-    def flush(self):
+class CheckForElem:
+
+    '''
+    Class for checking given elements are present on the screen. For example checks if a certain word is present
+    or a certain colour of pixel
+    '''
+
+    def __init__(self,logger,colTolerance):
+
+        self.logger=logger
+        self.colTolerance=colTolerance #int value of the amount of colour tolerance desired when matching colours. Often set to about 20 for each rgb portion
+
+    def confirmImage(self, image, sector, topLeftx=0, topLefty=0, bottomRightx=0, bottomRighty=0):
+
+        '''
+        Confirms if a given element is present on the screen.
+        input: image: str of image to search for in the screen ('image.png')
+        inputs: sector: str defining which sector of screen to search for desired element
+            Exact values of box to check for element (if not using a general sector of the screen
+        output: True if and when the element (the image sent in) is found
+        '''
+
+        if sector == 'c':  # Centre Section: set screenshot region for small box in centre of the screen
+            regValues = (756, 410, 400, 400)
+        if sector == 'cr': # Screenshot for centre right
+            regValues = (1000, 380, 500, 500)
+        if sector == 'n':  # If no sector is used, load in exact values of box to check for element
+            regValues = (topLeftx, topLefty, bottomRightx, bottomRighty)
+
+        loop = True
+        while loop:
+
+            if ag.locateOnScreen(image, region=regValues) == None:
+                continue
+            else:
+                loop = False
+
+        return True
+
+    def getClosestColorName(self,rgbTuple):
+        minDistance = float("inf")
+        closestName = None
+
+        for name in webcolors.names():
+            rgbReference = webcolors.name_to_rgb(name)
+
+            rd = (rgbReference[0] - rgbTuple[0]) ** 2
+            gd = (rgbReference[1] - rgbTuple[1]) ** 2
+            bd = (rgbReference[2] - rgbTuple[2]) ** 2
+
+            distance = rd + gd + bd
+
+            if distance < minDistance:
+                minDistance = distance
+                closestName = name
+
+        return closestName
+    def confirmColour(self, x, y, colour):
+
+        '''
+        Confirms an element is present by matching a colour expected to a colour on the screen
+        :param x: x coordinate of pixel to test its colour
+        :param y: y coordinate of pixel to test its colour
+        :param colour: a tuple (r,g,b) given in parantheses
+        :return: True once the colour is detected
+        '''
+
+        # This is now set at the instantiation of the CheckForElem from the config file class above and can be called anytime; self.colTolerance
+        # tolVal=60 # value of colour tolerance for each base colour r,g,b (Eg: If red should be 100, but in fact is 200, still confirms as true) \
+
+
+        loop = True
+
+        while loop:
+
+            current = ag.pixel(x, y)
+
+            match = all(abs(current[i] - colour[i]) <= self.colTolerance for i in range(3)) # check that all 3 r.g.b match the needed colour within a range of tolerance
+
+            if match: #if match (True) stop loop
+                loop = False
+            else: # if match (False) delay then continue loop
+                time.sleep(0.01)
+
+        print("Colour confirmed")
+        print("Target:", colour)
+        print("Found:", current)
+
+        colourName=self.getClosestColorName(colour)
+        currentColName=self.getClosestColorName(current)
+
+        self.logger.log(f'Colour confirmed. (Checking for this colour value: {colour}, ({colourName}) at {x}, {y}. Colour found: {current} ({currentColName}). Tolerance value: {self.colTolerance})')
+
+        time.sleep(0.1)
+        return True
+
+    def getColour(self):
+
+        '''
+        Gets the colour value of the pixel at the current position of the mouse
+        :return: a tuple of two tuples, the mouse position and colour value at that position ((x,y),(r,g,b))
+        '''
+        mousePos = ag.position() # get position of the mouse (x,y)
+        return (mousePos,ag.pixel(mousePos[0],mousePos[1])) # return the pixel value for the given mousePos ((x,y),(r,g,b))
+
+    def getColourDelayed(self):
+
+        '''
+        Gets the colour value of the pixel at the current position of the mouse and delays between getting the coordinates
+        and getting the colour; this allows acquiring the correct colour for elements that change colour when hovering over them
+        with the mouse. You can get the coordinates, then move the mouse, then get the colour.
+        :return: a tuple of two tuples, the mouse position and colour value at that position ((x,y),(r,g,b))
+        '''
+        mousePos = ag.position() # get position of the mouse (x,y)
+        print('Mouse position acquired.')
+        print('Move the mouse off of the element - 3 seconds')
+        time.sleep(3)
+        print(mousePos,ag.pixel(mousePos[0],mousePos[1]))
+        return (mousePos,ag.pixel(mousePos[0],mousePos[1])) # return the pixel value for the given mousePos ((x,y),(r,g,b))
+
+class TimeValues:
+    '''
+    A class which holds a variety of time values to use for moving the mouse accross the screen.
+    This standardizes the timings for automation and allows for easy alteration of timings across
+    the whole program. Upon instantiation you can choose a speed range such as 'f' for fast where all
+    values are set to shorter (and thus faster) timings.
+
+    Note: Values have to be calibrated carefully so as to be quick but also not too fast otherwise websites can't handle the speed.
+
+    Inputs: str: 'f' gives all fastest values; 'm' gives medium values; 's' gives slow values
+    '''
+
+    def __init__(self, speed):
+        if speed == 'f':
+            self.fast = 0.1
+            self.med = 0.2
+            self.slow = 0.3
+        if speed == 'm':
+            self.fast = 0.2
+            self.med = 0.3
+            self.slow = 0.5
+
+    def getFast(self):
+        return self.fast
+
+    def getMed(self):
+        return self.med
+
+    def getSlow(self):
+        return self.slow
+
+
+class AutomationSet:
+
+    '''
+    Objects of this class are the crux of the program. These objects contain all of the automation movements and actions created by the
+    createAutomation function. It also builds the real code for each automation, and runs that code.
+    '''
+
+    def __init__(self,logger):
+
+        self.logger=logger
+
+        self.name=None # Name of the Automation Set. Eg: Email, Booking, Schedule
+        self.briefDescription=None # Brief description of the automation
+        self.outlineOfFunctions=[] # List function and arguments in sequence in string form (used for building the real functions)
+
+        # The actual function calls needs to be rebuilt everytime the program is restarted because func references do not remain constant
+        # after restarting the program
+        self.actualFunctions=[] # List of real functions in sequence built using the outlineOfFuncCalls directly above.
+
+        # self.logger = Logger() # Instantiate the logger and send into the PYautogui class
+
+        self.pyAutogui=PYautogui(self.logger) # Instantiate the PYautogui class which contains all methods for automating
+        self.checkForElement=CheckForElem(self.logger,config["colTolerance"]) # Instantiate CheckFor Element class; access the config dict to get coltolerance value
+
+
+        # This call actually needs to be later in the process. It is moved to inside the runAutomation() method
+        # when the class is first instantiated (during createAutomation) there is not yet a function outline and therefore
+        # the actualFunctions will be empty
+        # self.buildActualFuncsList() # Build the actual functions. This populates the actualFunctions list with the callable functions
+
+        # Colour of button on interface as hex str
+        self.buttonColour=''
+
+
+    def setName(self,name):
+        '''
+        Single word name given to the automation which becomes the title of the button on screen and given by the user.
+        :param name: str: one word which can fit inside the button
+        '''
+
+        self.name=name
+
+    def setBriefDescription(self,description):
+
+        self.briefDescription=description
+
+    def getName(self):
+
+        return self.name
+
+    def setColour(self,colour):
+        '''
+        Set colour of button on interface
+        :param colour: str of hex '#000000'
+        '''
+
+        self.buttonColour=colour
+
+    def getColour(self):
+
+        try:
+            return self.buttonColour
+        except:
+            pass
+
+    def writeOutlineOfFunctions(self,function):
+
+        '''
+        This method accesses the outlineOfFunctions list and appends a string name of the function and any needed arguments
+        needed for a list of sequential automations. This list is then used to build the list of real functions. This method is
+        used during the createAutomation phase when the user is building their sequence of automations. By thye time they
+        have finished all the screen prompts asking for input, this list will be full
+        :param str: function and any needed int, or str: arguments (variety of types depending on what is needed:
+        :return: none
+        '''
+
+        # append a function and any needed arguments to the sequential outline of functions
+        self.outlineOfFunctions.append(function)
+
+    def buildActualFuncsList(self):
+
+        '''
+        This very important method uses the outlineOfFuncCalls list (which is saved to an external file) to build
+        the actualFunctions list of both the function calls and any necessary arguments. It is called upon starting
+        the program so that all function calls will have an updated reference in memory. Note this list can not be used
+        for calling the functions because the arguments are not formatted yet. the RunAutomation method does the actual
+        calling.
+        :return: none
+        Inputs: none
+        '''
+
+        ### Build the Function List (actualFuncCalls) from the Outline of Functions List (outlineOfFuncCallst) ###
+        if len(self.actualFunctions)==0:
+
+            for itemList in self.outlineOfFunctions:  # access the itemList in the itemList [['function name as string',parameters]]
+                if itemList[0] == 'pyAutogui.moveMouse':  # if needing moveMouse, input moveMouse function with parameters
+                    self.actualFunctions.append([self.pyAutogui.moveMouse, itemList[1], itemList[2], itemList[3]])
+                elif itemList[0] == 'checkForElement.confirmColour':  # if needing a colour check (element check), input colour check function with parameters
+                    self.actualFunctions.append([self.checkForElement.confirmColour, itemList[1]])
+                elif itemList[0] == 'pyAutogui.type':  # if needing to type characters  input type function
+                    self.actualFunctions.append([self.pyAutogui.type, itemList[1], itemList[2]])
+                elif itemList[0] == 'pyAutogui.pressKeys':  # if needing to press a key combination (hotkeys)
+                    self.actualFunctions.append([self.pyAutogui.pressKeys, (itemList[1][0], itemList[1][1])])  # arguments come inside a tuple (holdKey,tapKey)
+                elif itemList[0] == 'pyAutogui.openFile':  # if needing to open a file
+                    self.actualFunctions.append([self.pyAutogui.openFile, (itemList[1][0], itemList[1][1])])  # arguments are filepath and filename
+                elif itemList[0] == 'pyAutogui.backspace':  # if needing to open a file
+                    self.actualFunctions.append([self.pyAutogui.backspace, (itemList[1])])  # arguments are number of presses on backspace key
+    def runAutomation(self):
+        '''
+        This method is called by the buttons on the interface and it runs the list of automation function calls from the actualFunctions list.
+        It calls the functions in order from the list and adds formats the arguments if needed
+        :return: none
+        '''
+
+        self.buildActualFuncsList()  # Build the actual functions. This populates the actualFunctions list with the callable functions
+        ###### Running the User's Set of Automations ######
+
+        # Run the list of function calls with arguments
+        print('Running automation\n')
+
+        self.logger.log("===========================================================")
+        self.logger.log("#### Initiating Automation for " + self.getName() + " ####") # Log the name of the automation before all of the actual functions
+
+
+        for itemList in self.actualFunctions:  # access the list in the list
+            if itemList[0] == self.pyAutogui.moveMouse:
+                itemList[0](itemList[1][0], itemList[1][1], itemList[2],itemList[3])  # access each item in the internal list and input arguments
+            elif itemList[0] == self.checkForElement.confirmColour:
+                itemList[0](itemList[1][0][0], itemList[1][0][1], (itemList[1][1]))  # [function,((x,y),(r,g,b))]
+            elif itemList[0] == self.pyAutogui.type:
+                itemList[0](itemList[1], itemList[2])  # [function,((x,y),(r,g,b))]
+            elif itemList[0] == self.pyAutogui.pressKeys:
+                itemList[0](itemList[1][0], itemList[1][1])  # [function,(holdKey,tapKey)]
+            elif itemList[0] == self.pyAutogui.openFile:
+                itemList[0](itemList[1][0], itemList[1][1])  # [function,(fileName,filePath)]
+            elif itemList[0] == self.pyAutogui.backspace:  # [function,(numOfPresses)]
+                itemList[0](itemList[1])
+
+
+
+
+# def createAutomation(automationObjList,mainWin):
+#       This function no longer needed as of version 2.5, moved build loop to the interface
+#     '''
+#     This function takes the user through a series of prompts in order to set up a new automation.
+#     The user will need to decide what type of action is needed for each step of their new automation.
+#     For example does it require a click of the mouse, and does it require confirming if a given button
+#     is even going to be loaded on the screen. Will text need to be inputted etc.
+#     :return: none
+#     inputs: List: automationObjList -- List of all AutomationSet objects; each object is one complete automated set of tasks
+#     '''
+#
+#     checkForElement=CheckForElem(logger) # Instantiate a Check for Element Class (contains methods needed for checking colours)
+#     automationObjList.append(AutomationSet(logger)) # Instantiate an AutomationSet Object
+#
+#     # name=mainWin.on_win_request('Give a short one word name to your automation: ')
+#     # print('from main function module: ',name)
+#     name = input('Give a short one word name to your automation: ')
+#     # name = input('Give a short one word name to your automation: ') # Prompt user to give the automation a name which goes onto the button on the TK interface
+#     automationObjList[-1].setName(name) # set name into the object which will be the last object in the list
+#
+#     # briefDes = mainWin.on_win_request('Give a brief one sentence description of your automation: ') # Also prompt user for a short description
+#     briefDes = input('Give a brief one sentence description of your automation: ')
+#     automationObjList[-1].setBriefDescription(briefDes) # set description in object
+#
+#     ############################################################################
+#     ##### A Loop Gathering Each Aspect of a User's Plans for an Automation  ####
+#     ############################################################################
+#
+#     runMainLoop=True
+#     while runMainLoop:  # loop for gathering input from user. Stopping this loop will move out of the user gathering mode and into run mode
+#
+#         mainRawInput = input('Press:\n1 for move mouse and click\n2 to type\n3 to press key combination\n4 to finish and save\n5 to open a file')  # prompt user
+#
+#         if mainRawInput == '1':  # if user wants to add mouse moves
+#             rawInput = input('Press:\n1 to add a colour check for a web element\n2 to simply click mouse (without colour check)\n')  # mouse only, or with colour check
+#
+#             if rawInput == '1':  # if adding colour check
+#                 print('Use Main Monitor Only: Place mouse over the top of a coloured element of the program or website -- 5 seconds\n')
+#                 time.sleep(5)
+#                 posAndCol = checkForElement.getColourDelayed()  # returns tuple of mouse pos, colour ((x,y),(r,g,b)) ## Takes colour from main monitor only
+#                 print('## Colour value acquired ##')
+#                 automationObjList[-1].writeOutlineOfFunctions(['checkForElement.confirmColour', posAndCol])
+#                 rawInput2 = input('Now move mouse to clicking position and press 1\n')
+#                 if rawInput2 == '1':
+#                     print('Keep mouse in position -- 3 seconds\n')  # prompt user to move mouse into desired position
+#                     time.sleep(3)  # give 3 seconds to user to move mouse
+#                     mousePos = ag.position()  # get position of mouse as tuple (x,y)
+#                     automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.moveMouse', mousePos, 0.5, 'y'])  # append function call and arguments with delay and click
+#                     print('Click-position information complete, thank you.\n')
+#
+#             if rawInput == '2':
+#                 print('Move mouse into clicking position -- 4 seconds\n')  # prompt user to move mouse into desired position
+#                 time.sleep(4)  # give 3 seconds to user to move mouse
+#                 mousePos = ag.position()  # get position of mouse as tuple (x,y)
+#                 automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.moveMouse', mousePos, 0.5, 'y'])  # append function call and arguments with delay and click
+#                 print('Mouse click position acquired.\n')
+#         if mainRawInput == '2':
+#             rawText = input('Type the text you want entered: ')  # prompt user to move mouse into desired position
+#             enter = input("press 'y' to add enter")
+#             if enter == 'y':
+#                 automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.type', rawText, 'y'])  # append function call and arguments with delay and click
+#             else:
+#                 automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.type', rawText, 'n'])  # append function call and arguments with delay and click
+#
+#         if mainRawInput == '3':  # if user wants to add a key combination (aka hotkeys)
+#             holdKey = input("type abbreviation for the 'hold' key with quotation marks. For example 'ctrl', 'alt','shift': ")
+#             tapKey = input("type the second key to be tapped. For example 'a', 'z': ")
+#             automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.pressKeys', (holdKey, tapKey)])
+#
+#
+#         if mainRawInput == '4':  # if user wants to complete building the sequence of clicks
+#             print('**** Automation file saved.  All is Complete **** \n\n')
+#             saveFile(automationObjList, "Automations")
+#             mainWin.clearButtons()
+#             mainWin.loadButtons()
+#             runMainLoop = False
+#
+#         if mainRawInput == '5':
+#             filePath = input("copy and paste file path here (eg: 'C:\\Documents\\Files\\') : ")
+#             print("path received")
+#             fileName = input("input exact file name here with extension (eg: 'dates of travel.pdf' :")
+#             print("file name received")
+#             automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.openFile', (filePath,fileName)])
+
+
+def addColourCheckClick(automationObjList):
+
+    checkForElement = CheckForElem(logger,config["colTolerance"])  # Instantiate a Check for Element Class (contains methods needed for checking colours)
+    #automationObjList.append(AutomationSet(logger))  # Instantiate an AutomationSet Object
+
+    print('Place mouse over top of coloured element - 4 seconds')
+
+    time.sleep(4)
+
+    posAndCol = checkForElement.getColourDelayed()
+
+    print('## Colour value acquired ##') #
+
+    automationObjList[-1].writeOutlineOfFunctions(['checkForElement.confirmColour', posAndCol])
+
+    print('Move mouse to click position -- 3 seconds')
+
+    time.sleep(3)
+
+    mousePos = ag.position()
+
+    automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.moveMouse', mousePos, 0.5, 'y'])
+
+    print('Click-position information complete.')
+
+def addSimpleClick(automationObjList):
+
+    print('Move mouse to click position - 4 seconds')
+
+    time.sleep(4)
+
+    mousePos = ag.position()
+
+    automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.moveMouse', mousePos, 0.5, 'y'])
+
+    print('Mouse click position acquired.')
+
+
+def addTyping(automationObjList, rawText, enter):
+
+    if enter == 'y':
+
+        automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.type', rawText, 'y'])
+
+    else:
+
+        automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.type', rawText, 'n'])
+
+
+def addPassword(automationObjList, rawText, enter):
+
+    pass
+
+def addKeyCombination(automationObjList, holdKey, tapKey):
+
+    automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.pressKeys', (holdKey, tapKey)])
+
+def addBackspace(automationObjList,numOfPresses):
+
+
+    automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.backspace', numOfPresses])
+
+
+def addOpenFile(automationObjList, filePath, fileName):
+
+    '''
+    Opens a file on the computer by its path and file name, includes a validation check whether or not the user
+    has included a backslash at the end of the path
+    :param automationObjList:
+    :param filePath: given by the user prompt, file path only, not including filename
+    :param fileName: comeplete filename with dot extension
+    '''
+    backslash = chr(92) # get a clean string of backslash chr because backslash is also an escape character
+    if filePath[-1] != backslash: # if no backslash present in last position:
+        filePath=filePath+backslash # add a backslash to the very end
+    else: # if backslash is present do not add anything
         pass
 
-class MainWindow:
+    automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.openFile', (filePath, fileName)])
 
-    def __init__(self, master, automationObjList,deletedAutomations,config):
 
-        # Master Window
-        self.master = master
-        self.master.title('One Click 2.6')
+def finishAutomation(automationObjList, mainWin):
 
-        # Initial window size (compact view, not showing extra buttons)
-        self.initWinPosHorVert = config["initWinPosHorVert"]
-        self.initWinSizeHorVert = config["initWinSizeHorVert"]
+    print('**** Automation file saved. All is Complete *')
 
-        # large window size for making room for extra buttons
-        self.largeWinPosHorVert = config["largeWinPosHorVert"]
-        self.largeWinSizeHorVert = config["largeWinSizeHorVert"]
+    saveFile(automationObjList, "Automations")
 
+    mainWin.clearButtons()
 
+    mainWin.loadButtons()
 
-        self.master.geometry(self.initWinPosHorVert)  # intial position of the window in the screen (200x300) ("-3300+500")
-        self.master.geometry(self.initWinSizeHorVert)  # initial size of the root window (master) (1500x700);
+def saveFile(dataToSave, filename):
 
-        # if not set, the frames will fill the master window
-        # self.master.attributes('-fullscreen', True)
-        screenWidth = self.master.winfo_screenwidth()
-        screenHeight = self.master.winfo_screenheight()
+    with open(filename, "wb") as fp:  # Pickling
+        pickle.dump(dataToSave, fp)
+        fp.close()
 
-        self.master.attributes("-topmost", True)
+def deleteItem(attribute,deletedAutomations,automationObjList,mainWin):
+    print('delete item accessed')
+    print('attribute is:',attribute)
+    c=0
+    for object in automationObjList:
+        if object.getName()==attribute or object.getName()==None: # if automation was not given a name, its name will be None
+            deletedAutomations=automationObjList.pop(c)
+            print("Button deleted")
+            saveFile(automationObjList, "Automations")
+            mainWin.clearButtons()
+            mainWin.loadButtons()
+        else:
+            c+=1
 
-        # Instantiate frames
-        self.frame0 = Frame(self.master, bd=5, padx=5, bg='#606266')  # Top long row
-        self.frame1 = Frame(self.master, bd=5, padx=5, bg='#2a2b2b')  # Side Column for buttons to run automations
-        self.frame2 = Frame(self.master, bd=5, padx=5, bg='#FFC672')  # Main frame used for creating automations
-        self.frame3 = Frame(self.master, bd=5, padx=5, bg='#FFC692')  # Bottom frame for posting messages
+def renameItem(attribute,automationObjList,mainWin):
+    name=input('Rename to:')
+    for object in automationObjList:
+        if object.getName()==attribute:
+            object.setName(name)
+            saveFile(automationObjList, "Automations")
+            mainWin.clearButtons()
+            mainWin.loadButtons()
 
-        # Place frames
-        self.frame0.grid(row=0, column=0, columnspan=2, sticky="nsew")
-        self.frame1.grid(row=1, column=0, columnspan=1, sticky="nsew")
-        self.frame2.grid(row=1, column=1, columnspan=1, sticky="nsew")
-        self.frame3.grid(row=2, column=0, columnspan=2, sticky="nsew")
+def setButtonColour(attribute,automationObjList,mainWin):
+    colour=input('Set colour to (use hex #112255 or colour name): ')
+    for object in automationObjList:
+        if object.getName()==attribute:
+            object.setColour(colour)
+            saveFile(automationObjList, "Automations")
+            mainWin.clearButtons()
+            mainWin.loadButtons()
 
-        # configure weighting of frames
-        self.master.grid_columnconfigure(0, weight=1)  # First int refers to column numberAllows frames to expand as master window expands; weight tells how much of the columns it takes
-        self.master.grid_columnconfigure(1, weight=7)  # weight gives 3 times as much column as the other columns
-        self.master.grid_rowconfigure(1, weight=1)  # rowconfigure states: first row takes 1 parts of space
-        self.master.grid_rowconfigure(2, minsize=30)
 
-        self.frame1.grid_propagate(0)  # When adding widgets maintain weighting of frames
-        self.frame2.grid_propagate(0)
 
-        # Default Buttons
-        self.createButton = Button(self.frame1, text="Create", width=12, bg="#859AFF", command=lambda: self.createAutomationInterface(self.automationObjList))  # Button for creating a new automation
-        self.createButton.pack()
 
-        # this is used to get the exact default button colour regardless of platform progam is run on, hence this button is not packed to screen
-        self.colourCheckButton=Button(self.frame1, text="", width=12)
-        self.defaultButtonColour=self.colourCheckButton['bg']
 
-        self.textbox = Text(self.frame3, height=1, width=80)
-        self.textbox.pack(fill='both', expand=True)
-
-        #self.textbox.insert("end", "Hello textbox")
-
-        # redirect print statements
-
-        sys.stdout = PrintLogger(self.textbox)
-
-
-        # Button Lists
-        self.automationObjList = automationObjList  # Load file storing each Automation Object
-        self.buttonList = []  # Holds Button classes for each automation from the loaded Automatins file
-
-        # Deleted Automations (deleted by the use but saved here)
-        self.deletedAutomations=deletedAutomations
-
-        # Set up Buttons:
-        self.loadButtons()  # Loads the Button classes into the buttonList above from the description list
-
-        frameWidth = 10  # Units are in characters not pixels
-
-        windll.shcore.SetProcessDpiAwareness(1)  # used for fixing blurry fonts on win 10 and 11
-
-    def createAutomationInterface(self, automationObjList):
-
-        '''
-        This method opens a larger frame in the main program's display and loads the buttons needed for building a user generated automation (click the mouse, enter terxt).
-        First it checks if the screen has any buttons remaining from a previous creation session and removes them, then it creates the new AutomationSet object,
-        then prompts for the name of the new Automation, then finally loads the buttons for the user to build each part of an automation.
-        :param automationObjList:
-        :return:
-        '''
-
-        # buttons from a previous creation of an automation are still up, clear them first so as not to have duplicates
-        if self.frame2.winfo_children():
-
-            for widget in self.frame2.winfo_children():
-                widget.destroy()
-
-        # instantiate new AutomationSet object first
-        automationObjList.append(AutomationSet(logger))
-
-        # Prompt for name of automation before showing the buttons on the screen so that first we get the name, then following that, the actions
-        name = simpledialog.askstring("Automation Name", "Give a short one word name to your automation:")
-        automationObjList[-1].setName(name)
-
-        self.master.geometry("+1400+200")
-        self.master.geometry("500x400") # resize window larger to make room for extra buttons
-
-        Button(self.frame2, text='Add Colour Check + Click', width=30, command=lambda: addColourCheckClick(automationObjList)).pack(pady=3)
-
-        Button(self.frame2, text='Add Simple Click', width=30, command=lambda: addSimpleClick(automationObjList)).pack(pady=3)
-
-        Button(self.frame2, text='Type Text', width=30, command=lambda: addTyping(automationObjList,simpledialog.askstring("Enter Text", "Enter any text desired:"), simpledialog.askstring("Enter Key", "add 'y' to press enter; leave blank for none:"))).pack(pady=3)
-
-        Button(self.frame2, text='Enter Password', width=30, command=lambda: addPassword(automationObjList, simpledialog.askstring("Enter Password", "Enter the password:"), simpledialog.askstring("Enter Key", "add 'y' to press enter; leave blank for none:"))).pack(pady=3)
-
-        # This button calls the addKeyCombo funcs imported from mainFuncs which needs two args from the user
-        Button(self.frame2, text='Add Key Combination', width=30, command=lambda: addKeyCombination(automationObjList, simpledialog.askstring("Hold Key", "type abbreviation for hold key:"), simpledialog.askstring("Tap Key", "type second key:"))).pack(pady=3)
-
-        Button(self.frame2, text='Backspace', width=30, command=lambda: addBackspace(automationObjList,simpledialog.askstring("Press Backspace", "enter number of presses"))).pack(pady=3)
-
-        Button(self.frame2, text='Open File', width=30, command=lambda: addOpenFile(automationObjList,simpledialog.askstring("File Path Only", "Copy and paste file path here"), simpledialog.askstring("File Name and Extension", "Type in exact file name with extension"))).pack(pady=3)
-
-        Button(self.frame2, text='Finish And Save', bg="light green",width=30,command=lambda: self.finishAutomationInterface(automationObjList)).pack(pady=3)
-
-        if name is None:
-            return
-
-    def finishAutomationInterface(self, automationObjList):
-
-        'This function bundles two functions into one. It finishes the automation by calling finish, and then clears the frame. Other handy things can allso be added'
-
-        finishAutomation(automationObjList, self)
-
-        if self.frame2.winfo_children():
-
-            for widget in self.frame2.winfo_children():
-                widget.destroy()
-
-        # reset interface to its initial size and position
-        self.master.geometry(self.initWinPosHorVert)
-        self.master.geometry(self.initWinSizeHorVert)
-
-
-    def refreshFrame1(self):
-
-        self.frame1.update()
-
-    def rightClick(self,event,attribute):
-
-        self.m = Menu(self.master, tearoff=0)
-        self.m.add_command(label="Delete", command=lambda: deleteItem(attribute, self.deletedAutomations,self.automationObjList,mainWin))
-        self.m.add_command(label="Rename", command=lambda: renameItem(attribute,self.automationObjList,mainWin))
-        self.m.add_command(label="Colour", command=lambda: setButtonColour(attribute,self.automationObjList,mainWin))
-        self.m.add_command(label="Reload")
-        self.m.add_separator()
-        self.m.add_command(label="Rename")
-
-        self.m.post(event.x_root, event.y_root)
-
-
-    def frame(self):
-        self.frame2.destroy()
-
-    def clearButtons(self):
-
-        for button in self.buttonList:
-            button.destroy()
-    def loadButtons(self):
-
-        if self.buttonList != None:
-            self.buttonList.clear()
-
-        for object in self.automationObjList:  # take each Automation object and instantiate a Button
-            if object.getColour()=='': # if user has not set any colour, get default colour (line below)
-                colour=self.defaultButtonColour # acquire dfault colour as set for the system you are running on
-            else:
-                colour=object.getColour() # if user has set a colour, get that colour
-            try: # Try instantiating the button with colour given above, if error arises due to problematic input from user go to except
-                self.buttonList.append(Button(self.frame1, text=object.getName(), width=12, bg=colour, command=object.runAutomation))
-            except: # If colour is problematic (ie a colour that does not exist) just create button without a colour (defualt colour)
-                self.buttonList.append(Button(self.frame1, text=object.getName(), width=12, command=object.runAutomation))
-
-        for button in self.buttonList:  # for each button pack it
-            button.pack()
-            button.bind("<Button-3>", lambda event, a=button["text"]: self.rightClick(event, a))
-
-    def on_win_request(self,promptText):
-
-        def clearFrames(event):
-
-            self.frame2.destroy()
-
-
-            # for widget in self.frame2.winfo_children():
-            #     widget.destroy()
-
-
-        label = Label(self.frame2, text=promptText, font=('Ebrima 14'), wraplength=250)  # Label(top, text="Add New Item", font=('Mistral 18 bold')).place(x=150, y=80)
-
-        # Grid Labels
-        label.grid(row=1, column=1)  # "New Value",   Note: .grid cannot be placed as a single line code: Label(...).grid(..) as the .grid will actually return None to the program and casue an error
-
-        entry = Entry(self.frame2, width='10')
-        entry.grid(row=1, column=2)
-        x=entry.get()
-
-        label.update()
-        # self.master.update()
-        entry.focus_set()
-        entry.bind("<Return>", clearFrames)
-        # automationEntry.bind('<Return>', self.print1)
-        # Process the return key press with parameters
-        # executed only when "dialog" is destroyed
-        self.frame2.wait_window() # without this the program forges on ahead to the return call which returns nothing
-        print("Mini-event loop finished!")
-        return x
-
-
-
-def main():
-    global mainWin  # Global mainWin so as to access the mainWin from functions which may need to call method
-    root = Tk()
-
-    if exists('Automations'):  # Returns True if file exists; if true open file and load into list
-        with open('Automations', 'rb') as f:  # use wb mode so if file does not exist, it will create one; use rb if only reading
-            automationObjList = pickle.load(f)
-            f.close()
-
-    else:  # If no file exists intialize list as empty
-        automationObjList = []
-
-    # Load Configurations from config YAML file
-    if exists('AutoConfig.yaml'):  # Returns True if file exists; if true open file and load into variable
-        with open('AutoConfig.yaml', 'r') as f:
-            config = yaml.safe_load(f) # loads all settings into a python dictionary. (wxample in a class, self.name = config["name"])
-            f.close()
-
-    else:  # If no file exists initialize values to defaults
-        print("### the config file was not found, default values have been loaded instead ###")
-
-        # Config values inside dictionary with default values (loads after closing messagebox)
-        config = {"winPosHorVer":"+2+118","winSizeHorVert":"1800x45","mainFrameCol":"#FFC642","initWinPosHorVert":"+1600+200","initWinSizeHorVert" : "250x400","largeWinPosHorVert":"1400x200","largeWinSizeHorVert":"500x400","colTolerance":"20"}
-
-
-
-        # Post message to screen if configuration file could not be found
-        messagebox.showinfo('Message', 'The configuration file could not be found, and so the program is loaded with default settings.')
-
-    mainWin = MainWindow(root, automationObjList,deletedAutomations, config)  # Instantiate TK Window with access to automation object list
-
-    root.mainloop()
-
-
-main()
+# def loadFile(filename): # No longer used here. This was moved to the TK Main function to load all neccessary data before starting the program
+#
+#     with open(filename, "rb") as fp:  # Unpickling
+#         return pickle.load(fp)
