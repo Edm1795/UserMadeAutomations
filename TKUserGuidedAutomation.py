@@ -12,6 +12,7 @@ from os.path import exists
 import sys
 import yaml
 
+
 class PrintLogger:
     def __init__(self, textbox):
         self.textbox = textbox
@@ -122,9 +123,9 @@ class MainWindow:
     def createAutomationInterface(self, automationObjList):
 
         '''
-        This method loads the buttons needed for building a user generated automation. First it checks if the screen has any buttons
-        remaining from a previous creation session and removes them, then it creates the new AutomationSet object, then prompts for the
-        name of the new Automation, then finally loads the buttons for the user to build each part of an automation.
+        This method opens a larger frame in the main program's display and loads the buttons needed for building a user generated automation (click the mouse, enter terxt).
+        First it checks if the screen has any buttons remaining from a previous creation session and removes them, then it creates the new AutomationSet object,
+        then prompts for the name of the new Automation, then finally loads the buttons for the user to build each part of an automation.
         :param automationObjList:
         :return:
         '''
@@ -150,6 +151,8 @@ class MainWindow:
         Button(self.frame2, text='Add Simple Click', width=30, command=lambda: addSimpleClick(automationObjList)).pack(pady=3)
 
         Button(self.frame2, text='Type Text', width=30, command=lambda: addTyping(automationObjList,simpledialog.askstring("Enter Text", "Enter any text desired:"), simpledialog.askstring("Enter Key", "add 'y' to press enter; leave blank for none:"))).pack(pady=3)
+
+        Button(self.frame2, text='Enter Password', width=30, command=lambda: addPassword(automationObjList, simpledialog.askstring("Enter Password", "Enter the password:"), simpledialog.askstring("Enter Key", "add 'y' to press enter; leave blank for none:"))).pack(pady=3)
 
         # This button calls the addKeyCombo funcs imported from mainFuncs which needs two args from the user
         Button(self.frame2, text='Add Key Combination', width=30, command=lambda: addKeyCombination(automationObjList, simpledialog.askstring("Hold Key", "type abbreviation for hold key:"), simpledialog.askstring("Tap Key", "type second key:"))).pack(pady=3)
