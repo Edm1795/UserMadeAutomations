@@ -4,7 +4,9 @@ Open the cmd window Type: pip install pyinstaller
 
 in the cmd windowd Go to the folder containing your Python code
 
-Type: pyinstaller --onefile nameOfFile.py
+Type: pyinstaller --onefile nameOfFile.py (--onefile C:\Users\aswitzer\PycharmProjects\DFspecialized\TK.py)  This will make the file for windows and will pull all neccessary other files with it, then add the image file
+into the same folder and the config file and youre done
+
 Your executable file will go to a "dist" folder in the same directory as your python code
 
 When you run the program, best to run by the cmd window with a command call so as to see error messages.
