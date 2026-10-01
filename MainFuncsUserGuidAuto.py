@@ -11,6 +11,7 @@ import pickle
 import logging
 from os.path import exists
 import yaml
+import webcolors
 
 # List holding all individual automation objects; used by createAutomation function
 automationObjList=[] # List of the class AutomationSet
@@ -64,6 +65,7 @@ class PYautogui:
         Time: int: mount of time to take to get pointer to its position
         click: a str value of 'y' if a click is desired at final position
         '''
+
         ag.moveTo(horiz, vert, duration=time)
 
         if click == 'y':
@@ -110,6 +112,18 @@ class PYautogui:
         ag.keyUp(holdKey)
 
         self.logger.log(f'Keys pressed:    {holdKey}, {secondKey}')
+
+    def pressThreeKeys(self, holdKey, secondHoldKey, thirdKey):
+        '''
+        Triple key press function: eg: ctrl + shit + a
+        Inputs: holdKey: str key to hold down, eg: ctrl or shift
+        secondHoldKey:  str second key to press eg, shift
+        thirdKey: same as secondHoldKey
+        '''
+        print('three keys initiated')
+        ag.hotkey(holdKey, secondHoldKey, thirdKey)
+
+        self.logger.log(f'Keys pressed:    {holdKey}, {secondHoldKey},{thirdKey}')
 
     def type(self, letters, enter='n'):
         '''
@@ -179,6 +193,24 @@ class CheckForElem:
 
         return True
 
+    def getClosestColorName(self,rgbTuple):
+        minDistance = float("inf")
+        closestName = None
+
+        for name in webcolors.names():
+            rgbReference = webcolors.name_to_rgb(name)
+
+            rd = (rgbReference[0] - rgbTuple[0]) ** 2
+            gd = (rgbReference[1] - rgbTuple[1]) ** 2
+            bd = (rgbReference[2] - rgbTuple[2]) ** 2
+
+            distance = rd + gd + bd
+
+            if distance < minDistance:
+                minDistance = distance
+                closestName = name
+
+        return closestName
     def confirmColour(self, x, y, colour):
 
         '''
@@ -210,8 +242,10 @@ class CheckForElem:
         print("Target:", colour)
         print("Found:", current)
 
+        colourName=self.getClosestColorName(colour)
+        currentColName=self.getClosestColorName(current)
 
-        self.logger.log(f'Colour confirmed. (Checking for this colour value: {colour}, at {x}, {y}. Colour found: {current}. Tolerance value: {self.colTolerance})')
+        self.logger.log(f'Colour confirmed. (Checking for this colour value: {colour}, ({colourName}) at {x}, {y}. Colour found: {current} ({currentColName}). Tolerance value: {self.colTolerance})')
 
         time.sleep(0.1)
         return True
@@ -375,10 +409,13 @@ class AutomationSet:
                     self.actualFunctions.append([self.pyAutogui.type, itemList[1], itemList[2]])
                 elif itemList[0] == 'pyAutogui.pressKeys':  # if needing to press a key combination (hotkeys)
                     self.actualFunctions.append([self.pyAutogui.pressKeys, (itemList[1][0], itemList[1][1])])  # arguments come inside a tuple (holdKey,tapKey)
+                elif itemList[0] == 'pyAutogui.pressThreeKeys':  # if needing to open a file
+                    self.actualFunctions.append([self.pyAutogui.pressThreeKeys, (itemList[1][0], itemList[1][1], itemList[1][2])])  # args are a tuple of three values (hold key, secondkey, third key)
                 elif itemList[0] == 'pyAutogui.openFile':  # if needing to open a file
                     self.actualFunctions.append([self.pyAutogui.openFile, (itemList[1][0], itemList[1][1])])  # arguments are filepath and filename
                 elif itemList[0] == 'pyAutogui.backspace':  # if needing to open a file
                     self.actualFunctions.append([self.pyAutogui.backspace, (itemList[1])])  # arguments are number of presses on backspace key
+
     def runAutomation(self):
         '''
         This method is called by the buttons on the interface and it runs the list of automation function calls from the actualFunctions list.
@@ -405,6 +442,8 @@ class AutomationSet:
                 itemList[0](itemList[1], itemList[2])  # [function,((x,y),(r,g,b))]
             elif itemList[0] == self.pyAutogui.pressKeys:
                 itemList[0](itemList[1][0], itemList[1][1])  # [function,(holdKey,tapKey)]
+            elif itemList[0] == self.pyAutogui.pressThreeKeys:
+                itemList[0](itemList[1][0], itemList[1][1], itemList[1][2])  # [function,(holdKey,secondKey,thirdkey)]
             elif itemList[0] == self.pyAutogui.openFile:
                 itemList[0](itemList[1][0], itemList[1][1])  # [function,(fileName,filePath)]
             elif itemList[0] == self.pyAutogui.backspace:  # [function,(numOfPresses)]
@@ -547,9 +586,17 @@ def addTyping(automationObjList, rawText, enter):
         automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.type', rawText, 'n'])
 
 
+def addPassword(automationObjList, rawText, enter):
+
+    pass
+
 def addKeyCombination(automationObjList, holdKey, tapKey):
 
     automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.pressKeys', (holdKey, tapKey)])
+
+def addThreeKeyCombination(automationObjList, holdKey, secondHoldKey, thirdKey):
+
+    automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.pressThreeKeys', (holdKey, secondHoldKey, thirdKey)])
 
 def addBackspace(automationObjList,numOfPresses):
 
