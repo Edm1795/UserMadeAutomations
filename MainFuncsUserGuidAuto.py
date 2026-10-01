@@ -3,6 +3,18 @@
 # The class holding the actual automation information for a single unified set of automations. The name of the automation, the description of each step
 # and the ability to create the functions
 
+##### Adding New Functions Instructions ######
+
+### There are mulitiple steps to adding a new function
+
+# 1. make the button in the TK module by copying the pattern set by any of the other buttons
+# 2. add the needed function from the official PYautogui module by looking it up online and put this into the PYautogui class in this code here
+# 3. add the correct line to writeOutlineofFunctions (a standalone function in this file)
+# 4. add a "add.... function to the standalone functions in this file
+# 5. add a func. to the build actual functions list in AutomationSet class
+# 6. add to a call to the runActualFuncsList in the AutomationSet class
+
+
 import pyautogui as ag
 import time
 import os
