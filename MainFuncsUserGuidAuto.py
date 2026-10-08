@@ -674,8 +674,8 @@ def renameItem(attribute,automationObjList,mainWin,name):
             mainWin.clearButtons()
             mainWin.loadButtons()
 
-def setButtonColour(attribute,automationObjList,mainWin):
-    colour=input('Set colour to (use hex #112255 or colour name): ')
+def setButtonColour(attribute,automationObjList,mainWin,colour):
+
     for object in automationObjList:
         if object.getName()==attribute:
             object.setColour(colour)
