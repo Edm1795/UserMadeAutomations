@@ -198,7 +198,7 @@ class MainWindow:
         self.m = Menu(self.master, tearoff=0)
         self.m.add_command(label="Delete", command=lambda: deleteItem(attribute, self.deletedAutomations,self.automationObjList,mainWin))
         self.m.add_command(label="Rename", command=lambda: self.renameTopWin(attribute,self.automationObjList,mainWin))
-        self.m.add_command(label="Colour", command=lambda: setButtonColour(attribute,self.automationObjList,mainWin))
+        self.m.add_command(label="Colour", command=lambda: self.setButtonColour(attribute,self.automationObjList,mainWin))
         self.m.add_command(label="Reload")
         self.m.add_separator()
         self.m.add_command(label="Rename")
@@ -212,8 +212,8 @@ class MainWindow:
     def renameTopWin(self,attribute,automationObjList,mainWin):
 
         '''
-        Open a top level window and request a colour to
-        change the colour of the button right-clicked on.
+        Open a top level window and take input to rename the button
+        Inputs: attribute, this comes from the button and is the same as the name of the object itself which display right on the button
         '''
 
         topWin = Toplevel(self.master)
@@ -228,12 +228,34 @@ class MainWindow:
 
         def enter(event):
             self.x = entry.get()
-            print(attribute)
             renameItem(attribute, automationObjList, mainWin, self.x)
             topWin.destroy()
 
         entry.bind("<Return>", enter)
 
+    def setButtonColour(self,attribute,automationObjList,mainWin):
+
+        '''
+        Open a top level window and request a colour to
+        change to
+        '''
+
+        topWin = Toplevel(self.master)
+        topWin.title("Change Colour")
+        topWin.geometry("250x150")
+
+        Label(topWin, text='New Colour: Use hex (#124578) or colour name').pack()
+
+        entry = Entry(topWin)
+        entry.focus_set()
+        entry.pack()
+
+        def enter(event):
+            self.x = entry.get()
+            setButtonColour(attribute, self.automationObjList, mainWin, self.x)
+            topWin.destroy()
+
+        entry.bind("<Return>", enter)
 
     def clearButtons(self):
 
