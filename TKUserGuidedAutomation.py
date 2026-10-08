@@ -191,20 +191,49 @@ class MainWindow:
         self.frame1.update()
 
     def rightClick(self,event,attribute):
-
+        '''
+        I have included mainWin as an argument so that the mainWin can be accessed by the functions module.
+        That is a very good idea
+        '''
         self.m = Menu(self.master, tearoff=0)
         self.m.add_command(label="Delete", command=lambda: deleteItem(attribute, self.deletedAutomations,self.automationObjList,mainWin))
-        self.m.add_command(label="Rename", command=lambda: renameItem(attribute,self.automationObjList,mainWin))
+        self.m.add_command(label="Rename", command=lambda: self.renameTopWin(attribute,self.automationObjList,mainWin))
         self.m.add_command(label="Colour", command=lambda: setButtonColour(attribute,self.automationObjList,mainWin))
         self.m.add_command(label="Reload")
         self.m.add_separator()
         self.m.add_command(label="Rename")
 
         self.m.post(event.x_root, event.y_root)
-
+        topLevelWin = Toplevel
 
     def frame(self):
         self.frame2.destroy()
+
+    def renameTopWin(self,attribute,automationObjList,mainWin):
+
+        '''
+        Open a top level window and request a colour to
+        change the colour of the button right-clicked on.
+        '''
+
+        topWin = Toplevel(self.master)
+        topWin.title("Rename")
+        topWin.geometry("250x150")
+
+        Label(topWin, text='Button Name').pack()
+
+        entry = Entry(topWin)
+        entry.focus_set()
+        entry.pack()
+
+        def enter(event):
+            self.x = entry.get()
+            print(attribute)
+            renameItem(attribute, automationObjList, mainWin, self.x)
+            topWin.destroy()
+
+        entry.bind("<Return>", enter)
+
 
     def clearButtons(self):
 
