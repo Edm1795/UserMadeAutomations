@@ -664,8 +664,9 @@ def deleteItem(attribute,deletedAutomations,automationObjList,mainWin):
         else:
             c+=1
 
-def renameItem(attribute,automationObjList,mainWin):
-    name=input('Rename to:')
+def renameItem(attribute,automationObjList,mainWin,name):
+
+
     for object in automationObjList:
         if object.getName()==attribute:
             object.setName(name)
