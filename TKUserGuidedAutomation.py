@@ -45,7 +45,7 @@ class MainWindow:
 
         # Master Window
         self.master = master
-        self.master.title('One Click 2.65')
+        self.master.title('One Click 2.66')
 
         # Initial window size (compact view, not showing extra buttons)
         self.initWinPosHorVert = config["initWinPosHorVert"]
@@ -201,13 +201,44 @@ class MainWindow:
         self.m.add_command(label="Colour", command=lambda: self.setButtonColour(attribute,self.automationObjList,mainWin))
         self.m.add_command(label="Reload")
         self.m.add_separator()
-        self.m.add_command(label="Rename")
+        self.m.add_command(label="Show Func", command=lambda: self.showFuncsTopWin(attribute))
 
         self.m.post(event.x_root, event.y_root)
         topLevelWin = Toplevel
 
     def frame(self):
         self.frame2.destroy()
+
+    def showFuncsTopWin(self,attribute):
+
+        '''This neat function prints opens a pop up and prints the list of automation actions for the
+        given button you right click on. It opens a new window, looks for the object for that given automation
+        (from self.automationObjList), then gets the outline of the automation actions and prints
+        them into the text box
+
+        Inputs: attribute (the "attribute" of the button the user clicks which is the same
+        as the name of the object itself, which is also the same as the name of button showing
+        on the interface (eg: Open Email)
+        '''
+
+        topWin = Toplevel(self.master)
+        topWin.title("Automation Instructions")
+        topWin.geometry("250x150")
+
+        textBox = Text(topWin, width=40, height=10)
+        textBox.pack()
+
+        print(len(automationObjList))
+        print(id(automationObjList))
+
+        for object in self.automationObjList: # go through each object in the list
+            if object.getName() == attribute: # find the attribute which matches the name of the object (eg "open email" = "open email")
+                outlineOfFuncsList = object.getOutlineOfFunctions() # get the string list of functions for the automation (pyMovemouse...)
+                for statement in outlineOfFuncsList: # get each statement from the above list
+                    textBox.insert("1.0",statement)
+
+
+
 
     def renameTopWin(self,attribute,automationObjList,mainWin):
 
@@ -287,6 +318,8 @@ class MainWindow:
             self.frame2.destroy()
 
 
+
+
             # for widget in self.frame2.winfo_children():
             #     widget.destroy()
 
@@ -313,14 +346,22 @@ class MainWindow:
 
 
 
-def main():
+print('outside main',len(automationObjList))
+print(id(automationObjList))
+
+def main(automationObjList):
     global mainWin  # Global mainWin so as to access the mainWin from functions which may need to call method
     root = Tk()
+
+    print('in main before load file', len(automationObjList))
+    print(id(automationObjList))
 
     if exists('Automations'):  # Returns True if file exists; if true open file and load into list
         with open('Automations', 'rb') as f:  # use wb mode so if file does not exist, it will create one; use rb if only reading
             automationObjList = pickle.load(f)
             f.close()
+            print('after load file',len(automationObjList))
+            print(id(automationObjList))
 
     else:  # If no file exists intialize list as empty
         automationObjList = []
@@ -347,4 +388,4 @@ def main():
     root.mainloop()
 
 
-main()
+main(automationObjList)
