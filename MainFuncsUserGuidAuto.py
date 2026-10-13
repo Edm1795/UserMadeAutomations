@@ -29,6 +29,9 @@ import webcolors
 automationObjList=[] # List of the class AutomationSet
 deletedAutomations=[]
 
+print('at orif module',len(automationObjList))
+print(id(automationObjList))
+
 # Load Configurations from config YAML file same as used for interface but this module will only use relevant ones for this module
 if exists('AutoConfig.yaml'):  # Returns True if file exists; if true open file and load into variable
     with open('AutoConfig.yaml', 'r') as f:
@@ -331,7 +334,7 @@ class AutomationSet:
 
         self.name=None # Name of the Automation Set. Eg: Email, Booking, Schedule
         self.briefDescription=None # Brief description of the automation
-        self.outlineOfFunctions=[] # List function and arguments in sequence in string form (used for building the real functions)
+        self.outlineOfFunctions=[] # List of functions and arguments in sequence in string form (used for building the real functions)
 
         # The actual function calls needs to be rebuilt everytime the program is restarted because func references do not remain constant
         # after restarting the program
@@ -341,12 +344,6 @@ class AutomationSet:
 
         self.pyAutogui=PYautogui(self.logger) # Instantiate the PYautogui class which contains all methods for automating
         self.checkForElement=CheckForElem(self.logger,config["colTolerance"]) # Instantiate CheckFor Element class; access the config dict to get coltolerance value
-
-
-        # This call actually needs to be later in the process. It is moved to inside the runAutomation() method
-        # when the class is first instantiated (during createAutomation) there is not yet a function outline and therefore
-        # the actualFunctions will be empty
-        # self.buildActualFuncsList() # Build the actual functions. This populates the actualFunctions list with the callable functions
 
         # Colour of button on interface as hex str
         self.buttonColour=''
@@ -383,6 +380,11 @@ class AutomationSet:
         except:
             pass
 
+    def showOutlineOfFunctions(self):
+
+        return automationObjList
+
+
     def writeOutlineOfFunctions(self,function):
 
         '''
@@ -396,6 +398,10 @@ class AutomationSet:
 
         # append a function and any needed arguments to the sequential outline of functions
         self.outlineOfFunctions.append(function)
+
+    def getOutlineOfFunctions(self):
+
+        return self.outlineOfFunctions
 
     def buildActualFuncsList(self):
 
