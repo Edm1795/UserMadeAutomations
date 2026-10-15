@@ -45,7 +45,7 @@ class MainWindow:
 
         # Master Window
         self.master = master
-        self.master.title('One Click 2.66')
+        self.master.title('One Click 2.67')
 
         # Initial window size (compact view, not showing extra buttons)
         self.initWinPosHorVert = config["initWinPosHorVert"]
@@ -214,7 +214,7 @@ class MainWindow:
         '''This neat function prints opens a pop up and prints the list of automation actions for the
         given button you right click on. It opens a new window, looks for the object for that given automation
         (from self.automationObjList), then gets the outline of the automation actions and prints
-        them into the text box
+        them onto labels which have a hover function to change colour.
 
         Inputs: attribute (the "attribute" of the button the user clicks which is the same
         as the name of the object itself, which is also the same as the name of button showing
@@ -223,23 +223,25 @@ class MainWindow:
 
         topWin = Toplevel(self.master)
         topWin.title("Automation Instructions")
-        topWin.geometry("250x150")
+        topWin.geometry("250x800")
 
-        textBox = Text(topWin, width=40, height=10)
-        textBox.pack()
+        def on_enter(event):
+            event.widget.config(fg="red", bg="lightgray")
 
-        print(len(automationObjList))
-        print(id(automationObjList))
+        def on_leave(event):
+            event.widget.config(fg="black", bg="SystemButtonFace")
 
-        for object in self.automationObjList: # go through each object in the list
-            if object.getName() == attribute: # find the attribute which matches the name of the object (eg "open email" = "open email")
-                outlineOfFuncsList = object.getOutlineOfFunctions() # get the string list of functions for the automation (pyMovemouse...)
-                for statement in outlineOfFuncsList: # get each statement from the above list
-                    textBox.insert("1.0",statement)
-
-
-
-
+       
+        # Structure of OutlineOfFunctions: A list of lists: [['pyAutogui.moveMouse', Point(x=-327, y=67), 0.5, 'y'], ['pyAutogui.moveMouse', Point(x=-94, y=20), 0.5, 'y']]
+        for object in self.automationObjList:  # go through each object in the list
+            if object.getName() == attribute:  # find the attribute which matches the name of the object (eg "open email" = "open email")
+                outlineOfFuncsList = object.getOutlineOfFunctions()  # get the list of lists with the functions for the automation (pyMovemouse...) Note: it might not be all string
+                for listOfActions in outlineOfFuncsList:  # go into each independent action (eg: move mouse to a spot and click)
+                    for action in listOfActions:
+                        label=Label(topWin,text=action)   #  (side='top',anchor='w')
+                        label.pack()
+                        label.bind("<Enter>", on_enter)
+                        label.bind("<Leave>", on_leave)
     def renameTopWin(self,attribute,automationObjList,mainWin):
 
         '''
