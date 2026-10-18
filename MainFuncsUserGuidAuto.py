@@ -142,19 +142,28 @@ class PYautogui:
 
     def type(self, letters, enter='n'):
         '''
-        Types keyboard input to the cursor.
+        Types keyboard input to the cursor. It also checks if the text sent in is a password or not by checking for
+        the 'pass' prefix to the inputted text
+
         Inputs: letters: a sequence of strings to be typed
-        Enter: a str 'y' or 'n', if you want to press the enter key after inputing letters1
+        Enter: a str 'y' or 'n', if you want to press the enter key after inputing letters
         '''
-        ag.write(letters)
+        if letters[:4]=='pass':
+            textWithoutPass=letters[4:]
+            ag.write(textWithoutPass)
+        else:
+            ag.write(letters)
 
         if enter == 'y':
             time.sleep(0.5)  # used to add gap between text input and pressing enter
             ag.press('enter')
         if enter =='n':
-            return
+            pass
 
-        self.logger.log(f'text typed:      {letters}, enter pressed: {enter}')
+        if letters[:4]=='pass':
+            self.logger.log(f'text typed:      {'password entered'}, enter pressed: {enter}')
+        else:
+            self.logger.log(f'text typed:      {letters}, enter pressed: {enter}')
 
     def openFile(self,filePath,fileName):
         '''
@@ -392,8 +401,10 @@ class AutomationSet:
         needed for a list of sequential automations. This list is then used to build the list of real functions. This method is
         used during the createAutomation phase when the user is building their sequence of automations. By thye time they
         have finished all the screen prompts asking for input, this list will be full
+
         :param str: function and any needed int, or str: arguments (variety of types depending on what is needed:
-        :return: none
+        Structure of List: A list of lists, where each inner list is one independent move:
+        [['pyAutogui.moveMouse', Point(x=-327, y=67), 0.5, 'y'], ['pyAutogui.moveMouse', Point(x=-94, y=20), 0.5, 'y']]
         '''
 
         # append a function and any needed arguments to the sequential outline of functions
@@ -469,92 +480,6 @@ class AutomationSet:
 
 
 
-
-# def createAutomation(automationObjList,mainWin):
-#       This function no longer needed as of version 2.5, moved build loop to the interface
-#     '''
-#     This function takes the user through a series of prompts in order to set up a new automation.
-#     The user will need to decide what type of action is needed for each step of their new automation.
-#     For example does it require a click of the mouse, and does it require confirming if a given button
-#     is even going to be loaded on the screen. Will text need to be inputted etc.
-#     :return: none
-#     inputs: List: automationObjList -- List of all AutomationSet objects; each object is one complete automated set of tasks
-#     '''
-#
-#     checkForElement=CheckForElem(logger) # Instantiate a Check for Element Class (contains methods needed for checking colours)
-#     automationObjList.append(AutomationSet(logger)) # Instantiate an AutomationSet Object
-#
-#     # name=mainWin.on_win_request('Give a short one word name to your automation: ')
-#     # print('from main function module: ',name)
-#     name = input('Give a short one word name to your automation: ')
-#     # name = input('Give a short one word name to your automation: ') # Prompt user to give the automation a name which goes onto the button on the TK interface
-#     automationObjList[-1].setName(name) # set name into the object which will be the last object in the list
-#
-#     # briefDes = mainWin.on_win_request('Give a brief one sentence description of your automation: ') # Also prompt user for a short description
-#     briefDes = input('Give a brief one sentence description of your automation: ')
-#     automationObjList[-1].setBriefDescription(briefDes) # set description in object
-#
-#     ############################################################################
-#     ##### A Loop Gathering Each Aspect of a User's Plans for an Automation  ####
-#     ############################################################################
-#
-#     runMainLoop=True
-#     while runMainLoop:  # loop for gathering input from user. Stopping this loop will move out of the user gathering mode and into run mode
-#
-#         mainRawInput = input('Press:\n1 for move mouse and click\n2 to type\n3 to press key combination\n4 to finish and save\n5 to open a file')  # prompt user
-#
-#         if mainRawInput == '1':  # if user wants to add mouse moves
-#             rawInput = input('Press:\n1 to add a colour check for a web element\n2 to simply click mouse (without colour check)\n')  # mouse only, or with colour check
-#
-#             if rawInput == '1':  # if adding colour check
-#                 print('Use Main Monitor Only: Place mouse over the top of a coloured element of the program or website -- 5 seconds\n')
-#                 time.sleep(5)
-#                 posAndCol = checkForElement.getColourDelayed()  # returns tuple of mouse pos, colour ((x,y),(r,g,b)) ## Takes colour from main monitor only
-#                 print('## Colour value acquired ##')
-#                 automationObjList[-1].writeOutlineOfFunctions(['checkForElement.confirmColour', posAndCol])
-#                 rawInput2 = input('Now move mouse to clicking position and press 1\n')
-#                 if rawInput2 == '1':
-#                     print('Keep mouse in position -- 3 seconds\n')  # prompt user to move mouse into desired position
-#                     time.sleep(3)  # give 3 seconds to user to move mouse
-#                     mousePos = ag.position()  # get position of mouse as tuple (x,y)
-#                     automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.moveMouse', mousePos, 0.5, 'y'])  # append function call and arguments with delay and click
-#                     print('Click-position information complete, thank you.\n')
-#
-#             if rawInput == '2':
-#                 print('Move mouse into clicking position -- 4 seconds\n')  # prompt user to move mouse into desired position
-#                 time.sleep(4)  # give 3 seconds to user to move mouse
-#                 mousePos = ag.position()  # get position of mouse as tuple (x,y)
-#                 automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.moveMouse', mousePos, 0.5, 'y'])  # append function call and arguments with delay and click
-#                 print('Mouse click position acquired.\n')
-#         if mainRawInput == '2':
-#             rawText = input('Type the text you want entered: ')  # prompt user to move mouse into desired position
-#             enter = input("press 'y' to add enter")
-#             if enter == 'y':
-#                 automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.type', rawText, 'y'])  # append function call and arguments with delay and click
-#             else:
-#                 automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.type', rawText, 'n'])  # append function call and arguments with delay and click
-#
-#         if mainRawInput == '3':  # if user wants to add a key combination (aka hotkeys)
-#             holdKey = input("type abbreviation for the 'hold' key with quotation marks. For example 'ctrl', 'alt','shift': ")
-#             tapKey = input("type the second key to be tapped. For example 'a', 'z': ")
-#             automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.pressKeys', (holdKey, tapKey)])
-#
-#
-#         if mainRawInput == '4':  # if user wants to complete building the sequence of clicks
-#             print('**** Automation file saved.  All is Complete **** \n\n')
-#             saveFile(automationObjList, "Automations")
-#             mainWin.clearButtons()
-#             mainWin.loadButtons()
-#             runMainLoop = False
-#
-#         if mainRawInput == '5':
-#             filePath = input("copy and paste file path here (eg: 'C:\\Documents\\Files\\') : ")
-#             print("path received")
-#             fileName = input("input exact file name here with extension (eg: 'dates of travel.pdf' :")
-#             print("file name received")
-#             automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.openFile', (filePath,fileName)])
-
-
 def addColourCheckClick(automationObjList):
 
     checkForElement = CheckForElem(logger,config["colTolerance"])  # Instantiate a Check for Element Class (contains methods needed for checking colours)
@@ -606,7 +531,13 @@ def addTyping(automationObjList, rawText, enter):
 
 def addPassword(automationObjList, rawText, enter):
 
-    pass
+    if enter == 'y':
+
+        automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.type', 'pass'+rawText, 'y'])
+
+    else:
+
+        automationObjList[-1].writeOutlineOfFunctions(['pyAutogui.type', 'pass'+rawText, 'n'])
 
 def addKeyCombination(automationObjList, holdKey, tapKey):
 
