@@ -231,17 +231,24 @@ class MainWindow:
         def on_leave(event):
             event.widget.config(fg="black", bg="SystemButtonFace")
 
-       
+
         # Structure of OutlineOfFunctions: A list of lists: [['pyAutogui.moveMouse', Point(x=-327, y=67), 0.5, 'y'], ['pyAutogui.moveMouse', Point(x=-94, y=20), 0.5, 'y']]
         for object in self.automationObjList:  # go through each object in the list
             if object.getName() == attribute:  # find the attribute which matches the name of the object (eg "open email" = "open email")
                 outlineOfFuncsList = object.getOutlineOfFunctions()  # get the list of lists with the functions for the automation (pyMovemouse...) Note: it might not be all string
                 for listOfActions in outlineOfFuncsList:  # go into each independent action (eg: move mouse to a spot and click)
                     for action in listOfActions:
-                        label=Label(topWin,text=action)   #  (side='top',anchor='w')
-                        label.pack()
-                        label.bind("<Enter>", on_enter)
-                        label.bind("<Leave>", on_leave)
+                        if isinstance(action,str) and action[:4] == 'pass': #check if action is a str and includes as password by checking for the prefix 'pass'
+                            label=Label(topWin,text='password entered') # if it is a password, print off the text given so as not to reveal the password
+                            label.pack()
+                            label.bind("<Enter>", on_enter)
+                            label.bind("<Leave>", on_leave)
+
+                        else: # if the aciton is any other action, just print it to the window
+                            label=Label(topWin,text=action)   #  (side='top',anchor='w')
+                            label.pack()
+                            label.bind("<Enter>", on_enter)
+                            label.bind("<Leave>", on_leave)
     def renameTopWin(self,attribute,automationObjList,mainWin):
 
         '''
